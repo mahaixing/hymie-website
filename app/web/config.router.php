@@ -32,5 +32,5 @@
  */
 return array(
     // IndexController->someMethod
-    '/' => 'web\controller\IndexController',
+    '/(\w*)' => 'web\controller\IndexController',
 );

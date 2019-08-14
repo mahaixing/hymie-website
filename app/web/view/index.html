@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="description" content="">
     <meta name="author" content="mahaixing(mahaixing@gmail.com)">
-    <title>Dashboard Template · Bootstrap</title>
+    <title>海米 PHPMVC 手册-{{title}}</title>
 
     <!-- Bootstrap core CSS -->
     <link href="{{ context_path() }}/static/css/bootstrap/bootstrap.min.css" rel="stylesheet">
@@ -28,12 +28,13 @@
         }
       }
     </style>
-    <link href="{{ context_path() }}/static/css/hymie.css" rel="stylesheet">
+    <link href="{{ context_path() }}/static/css/hymie.css?t=13" rel="stylesheet">
+    <link href="{{ context_path() }}/static/css/markdown.css" rel="stylesheet">
   </head>
   <body>
     <nav class="navbar navbar-dark fixed-top bg-dark flex-md-nowrap p-0 shadow">
-        <a class="navbar-brand col-sm-3 col-md-2 mr-0" href="#">Hymie PHPMVC</a>
-    <!-- <input class="form-control form-control-dark w-100" type="text" placeholder="Search" aria-label="Search"> -->
+        <a class="navbar-brand col-sm-3 col-md-2 mr-0" href="#">海米 PHPMVC 手册</a>
+        <!-- <input class="form-control form-control-dark w-100" type="text" placeholder="Search" aria-label="Search"> -->
     </nav>
 
     <div class="container-fluid">
@@ -42,72 +43,86 @@
         <div class="sidebar-sticky">
             <ul class="nav flex-column">
             <li class="nav-item">
-                <a class="nav-link active" href="#">
+                <a class="nav-link {% if topic == 'main' %}active{% endif %}" href="{{ U('/') }}">
                 <span data-feather="home"></span>
-                主页 <span class="sr-only">(current)</span>
+                简介
                 </a>
-            </li>
+            </li> 
             <li class="nav-item">
-                <a class="nav-link" href="#">
+                <a class="nav-link {% if topic == 'config' %}active{% endif %}" href="{{ U('/config') }}">
                 <span data-feather="file"></span>
-                Orders
+                配置文件
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="#">
+                <a class="nav-link {% if topic == 'beanfactory' %}active{% endif %}" href="{{ U('/beanfactory') }}">
+                <span data-feather="file"></span>
+                Bean工厂
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if topic == 'mvc' %}active{% endif %}" href="{{ U('/mvc') }}">
                 <span data-feather="shopping-cart"></span>
-                Products
+                MVC
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="#">
+                <a class="nav-link {% if topic == 'routerandfilter' %}active{% endif %}" href="{{ U('/routerandfilter') }}">
                 <span data-feather="users"></span>
-                Customers
+                路由和过滤器
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="#">
+                <a class="nav-link {% if topic == 'session' %}active{% endif %}" href="{{ U('/session') }}">
                 <span data-feather="bar-chart-2"></span>
-                Reports
+                Session
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="#">
+                <a class="nav-link {% if topic == 'pagniation' %}active{% endif %}" href="{{ U('/pagniation') }}">
+                <span data-feather="bar-chart-2"></span>
+                分页
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if topic == 'fileupload' %}active{% endif %}" href="{{ U('/fileupload') }}">
+                <span data-feather="bar-chart-2"></span>
+                文件上传
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if topic == 'helpers' %}active{% endif %}" href="{{ U('/helpers') }}">
                 <span data-feather="layers"></span>
-                Integrations
+                帮助函数
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if topic == 'cache' %}active{% endif %}" href="{{ U('/cache') }}">
+                <span data-feather="layers"></span>
+                缓存
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if topic == 'logger' %}active{% endif %}" href="{{ U('/logger') }}">
+                <span data-feather="layers"></span>
+                日志
                 </a>
             </li>
             </ul>
-
             <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
-            <span>Saved reports</span>
-            <a class="d-flex align-items-center text-muted" href="#">
-                <span data-feather="plus-circle"></span>
-            </a>
+            <span>单元测试及服务配置</span>
             </h6>
-            <ul class="nav flex-column mb-2">
+            <ul class="nav flex-column">
             <li class="nav-item">
-                <a class="nav-link" href="#">
-                <span data-feather="file-text"></span>
-                Current month
+                <a class="nav-link {% if topic == 'unittest' %}active{% endif %}" href="{{ U('/unittest') }}">
+                <span data-feather="bar-chart-2"></span>
+                单元测试
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="#">
-                <span data-feather="file-text"></span>
-                Last quarter
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="#">
-                <span data-feather="file-text"></span>
-                Social engagement
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="#">
-                <span data-feather="file-text"></span>
-                Year-end sale
+                <a class="nav-link {% if topic == 'server' %}active{% endif %}" href="{{ U('/server') }}">
+                <span data-feather="bar-chart-2"></span>
+                服务器配置示例
                 </a>
             </li>
             </ul>
@@ -116,148 +131,23 @@
 
         <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4">
         <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-            <h1 class="h2">Dashboard</h1>
+            <h1 class="h1">{{ title }}</h1>
             <div class="btn-toolbar mb-2 mb-md-0">
-            <div class="btn-group mr-2">
-                <button type="button" class="btn btn-sm btn-outline-secondary">Share</button>
-                <button type="button" class="btn btn-sm btn-outline-secondary">Export</button>
+            <div class="btn-group mr-3">
+                <a type="button" class="btn btn-sm btn-outline-secondary" href="https://packagist.org/packages/hymie/mvc" target="_blank">
+                    Composer
+                </a>
+                <a type="button" class="btn btn-sm btn-outline-secondary" href="https://github.com/mahaixing/hymie-mvc" target="_blank">
+                    GitHub
+                </a>
+                <a type="button" class="btn btn-sm btn-outline-secondary" href="https://gitee.com/mahaixing/hymie-mvc" target="_blank">
+                    Gitee
+                </a>
             </div>
-            <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle">
-                <span data-feather="calendar"></span>
-                This week
-            </button>
             </div>
         </div>
-
-        <canvas class="my-4 w-100" id="myChart" width="900" height="380"></canvas>
-
-        <h2>Section title</h2>
-        <div class="table-responsive">
-            <table class="table table-striped table-sm">
-            <thead>
-                <tr>
-                <th>#</th>
-                <th>Header</th>
-                <th>Header</th>
-                <th>Header</th>
-                <th>Header</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                <td>1,001</td>
-                <td>Lorem</td>
-                <td>ipsum</td>
-                <td>dolor</td>
-                <td>sit</td>
-                </tr>
-                <tr>
-                <td>1,002</td>
-                <td>amet</td>
-                <td>consectetur</td>
-                <td>adipiscing</td>
-                <td>elit</td>
-                </tr>
-                <tr>
-                <td>1,003</td>
-                <td>Integer</td>
-                <td>nec</td>
-                <td>odio</td>
-                <td>Praesent</td>
-                </tr>
-                <tr>
-                <td>1,003</td>
-                <td>libero</td>
-                <td>Sed</td>
-                <td>cursus</td>
-                <td>ante</td>
-                </tr>
-                <tr>
-                <td>1,004</td>
-                <td>dapibus</td>
-                <td>diam</td>
-                <td>Sed</td>
-                <td>nisi</td>
-                </tr>
-                <tr>
-                <td>1,005</td>
-                <td>Nulla</td>
-                <td>quis</td>
-                <td>sem</td>
-                <td>at</td>
-                </tr>
-                <tr>
-                <td>1,006</td>
-                <td>nibh</td>
-                <td>elementum</td>
-                <td>imperdiet</td>
-                <td>Duis</td>
-                </tr>
-                <tr>
-                <td>1,007</td>
-                <td>sagittis</td>
-                <td>ipsum</td>
-                <td>Praesent</td>
-                <td>mauris</td>
-                </tr>
-                <tr>
-                <td>1,008</td>
-                <td>Fusce</td>
-                <td>nec</td>
-                <td>tellus</td>
-                <td>sed</td>
-                </tr>
-                <tr>
-                <td>1,009</td>
-                <td>augue</td>
-                <td>semper</td>
-                <td>porta</td>
-                <td>Mauris</td>
-                </tr>
-                <tr>
-                <td>1,010</td>
-                <td>massa</td>
-                <td>Vestibulum</td>
-                <td>lacinia</td>
-                <td>arcu</td>
-                </tr>
-                <tr>
-                <td>1,011</td>
-                <td>eget</td>
-                <td>nulla</td>
-                <td>Class</td>
-                <td>aptent</td>
-                </tr>
-                <tr>
-                <td>1,012</td>
-                <td>taciti</td>
-                <td>sociosqu</td>
-                <td>ad</td>
-                <td>litora</td>
-                </tr>
-                <tr>
-                <td>1,013</td>
-                <td>torquent</td>
-                <td>per</td>
-                <td>conubia</td>
-                <td>nostra</td>
-                </tr>
-                <tr>
-                <td>1,014</td>
-                <td>per</td>
-                <td>inceptos</td>
-                <td>himenaeos</td>
-                <td>Curabitur</td>
-                </tr>
-                <tr>
-                <td>1,015</td>
-                <td>sodales</td>
-                <td>ligula</td>
-                <td>in</td>
-                <td>libero</td>
-                </tr>
-            </tbody>
-            </table>
+        <div class="markdown-body">
+        {{ content|raw }}
         </div>
         </main>
     </div>

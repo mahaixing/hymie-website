@@ -2,3 +2,4 @@ vendor
 *.log
 composer.lock
 node_modules
+runtime

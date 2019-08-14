@@ -1,10 +1,18 @@
 <?PHP
+
 namespace web\controller;
 
 class IndexController
 {
-    public function index()
+    public function index($topic = 'main')
     {
-        return result()->setView("index");
+        $service = new \web\service\IndexService();
+        $data = $service->getTopic($topic);
+
+        if ($data == null) {
+            R('/');
+        } else {
+            return result()->setView("index")->success($service->getTopic($topic));
+        }
     }
 }

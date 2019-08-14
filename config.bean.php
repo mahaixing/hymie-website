@@ -104,8 +104,8 @@ $beans['predis'] = [
     'class' => 'Predis\Client',
     'construct-args' => [
         'parameters' => ['scheme' => 'tcp', 'host' => 'redis', 'port' => 6379],
-        'options' => ['prefix' => 'hymie:'] //, 'parameters' => ['password' => 'hymie@1234']]
-    ]
+        'options' => ['prefix' => 'hymie:'], //, 'parameters' => ['password' => 'hymie@1234']]
+    ],
 ];
 
 // cache bean
@@ -113,23 +113,26 @@ $beans['cache'] = [
     // 'class' => '\Symfony\Component\Cache\Adapter\FilesystemAdapter',
     'class' => '\Symfony\Component\Cache\Adapter\RedisAdapter',
     'construct-args' => [
-        'ref:predis'
-    ]
+        'ref:predis',
+    ],
 ];
 
 $beans['twig_loader'] = [
     'class' => '\Twig\Loader\FilesystemLoader',
     'construct-args' => [
-        APP_ROOT . DIRECTORY_SEPARATOR
-    ]
+        APP_ROOT . DIRECTORY_SEPARATOR,
+    ],
 ];
 
 $beans['twig'] = [
     'class' => '\Twig\Environment',
     'construct-args' => [
-        'ref:twig_loader', 
-        ['cache' => ROOT . DIRECTORY_SEPARATOR . 'runtime' . DIRECTORY_SEPARATOR . 'twig']
-    ]
+        'ref:twig_loader',
+        [
+            'cache' => ROOT . DIRECTORY_SEPARATOR . 'runtime' . DIRECTORY_SEPARATOR . 'twig',
+            'debug' => DEBUG,
+        ],
+    ],
 ];
 
 //medoo bean
