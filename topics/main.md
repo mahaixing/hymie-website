@@ -12,21 +12,60 @@ Hymie PHPMVC 是一个轻量级 MVC 框架，实现中借鉴了 [webpy](http://w
 
 > 如果有改进建议或 BUG 反馈，请联系 <a href="mailto://mahaixing@gmail.com">mahaixing@gmail.com</a>
 
+## 约定
+
+1. `web_root` 指的是 `web` 应用的主目录
+
+2. `document_root` 指的是 Apache 的 `DocumentRoot` 或者 nginx 的 `root`。
+
 ## 一、安装
 
 ### 1.1 Composer
 
   `composer require hymie/mvc`
 
-### 1.2 github 或者 gitee
+  代码中引用 `config.php` 即可完成框架配置
+
+### 1.2 源码安装
+可以从 github 或者 gitee 下载源码使用框架，下载后需要把框架目录放到 `web_root` 下。
 
   `git clone https://github.com/mahaixing/hymie-mvc`
 
   `git clone https://gitee.com/mahaixing/hymie-mvc`
 
-  保存下载的目录到项目主目录即可。
+  保存下载的目录到项目主目录，代码中需要手工注册 Hymie 的 autoload，用于加载框架类。
 
-### 1.3 源码目录说明
+  ```
+  <?PHP
+    // index.php
+    require '[web_root]/hymie/src/Loader.php';
+
+    \hymie\Loader::registerHymieClasses();
+
+    require 'config.php';
+  ```
+### 1.3 依赖
+如果使用 1.2 源码安装则需配置 `composer.json` 以获取依赖包，以下为依赖配置部分
+
+```
+	"require": {
+		"php": "^7.1",
+		"catfan/medoo": "^1.7",
+		"mobiledetect/mobiledetectlib": "^2.8",
+		"monolog/monolog": "^1.24",
+		"predis/predis": "^1.1",
+		"symfony/cache": "^3.4",
+		"twig/twig": "^2.11",
+		"voku/anti-xss": "^4.1",
+		"webmozart/assert": "^1.4",
+		"filp/whoops": "^2.4"
+	}
+```
+将以上部分放到 `composer.json` 文件后，执行 `composer intall` 命令完成依赖安装。
+
+> composer 安装很慢的话，可以使用 <a href="https://developer.aliyun.com/composer" target="_blank">阿里云 Composer 全量镜像</a>
+
+### 1.4 源码目录说明
 
   ```
   hymie -+

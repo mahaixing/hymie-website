@@ -1,4 +1,5 @@
 <?PHP
+
 /**
  * 定义环境配置，可接受的环境配置有：
  *
@@ -88,7 +89,7 @@ $config['url']['enable_query_string'] = false;
 $config['url']['query_string_key'] = 'g';
 // 如果 web 服务器配置了 url write 需要将此配置设置为 true
 // 仅在 enable_query_string = false 时可用
-$config['url']['rewrite_enabled'] = false;
+$config['url']['rewrite_enabled'] = true;
 
 /**
  * 分页配置
