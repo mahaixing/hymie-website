@@ -20,7 +20,7 @@ if (!function_exists('R')) {
     /**
      * 跳转地址
      *
-     * @param string $to     要跳转的路径
+     * @param string $to 要跳转的路径
      */
     function R($to)
     {
@@ -93,7 +93,7 @@ if (!function_exists('get_type')) {
     /**
      * 获取类型
      *
-     * @param mixed $target
+     * @param mixed $target 待获取类型的对象
      * @return string
      */
     function get_type($target)
@@ -135,9 +135,9 @@ if (!function_exists('get_array_item')) {
      * 获取数组指定 key 的值，若对应 key 不存在或者值 empty ，则范湖默认值。
      * 默认值默认为 null。
      *
-     * @param array $array
-     * @param string/int $key
-     * @param mixed $default
+     * @param array $array 目标数组
+     * @param string/int $key 键
+     * @param mixed $default 默认值，默认为 null
      *
      * @return mixed
      */
@@ -159,7 +159,7 @@ if (!function_exists('get_config')) {
     /**
      * 获取配置信息
      *
-     * @param string $key
+     * @param string $key 配置键名
      */
     function get_config($key)
     {
@@ -337,7 +337,7 @@ if (!function_exists('now')) {
      * 2019-03-31 （短）
      *
      *
-     * @param $time int        Unix timestamp
+     * @param $time int     Unix timestamp
      * @param $long bool    长时间或短时间
      *
      * @return    string

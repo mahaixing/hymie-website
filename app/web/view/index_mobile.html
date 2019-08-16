@@ -90,7 +90,12 @@
                                 <a class="mui-navigate-right" id="server">
                                     服务器配置示例
                                 </a>
-                            </li>                                                                
+                            </li>           
+                            <li class="mui-table-view-cell">
+                                <a class="mui-navigate-right" id="api">
+                                    api文档
+                                </a>
+                            </li>                                                                                        
 						</ul>
 					</div>
 				</div>
@@ -260,6 +265,15 @@
             document.getElementById('server').addEventListener('tap', function() {
                 mui.openWindow({
                     url: '{{ U("/server") }}',
+                    show:{
+                        autoShow:false
+                    }
+                });
+            });
+
+            document.getElementById('api').addEventListener('tap', function() {
+                mui.openWindow({
+                    url: '{{ context_path() }}/docs/index.html',
                     show:{
                         autoShow:false
                     }
