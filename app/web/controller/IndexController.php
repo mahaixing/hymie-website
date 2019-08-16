@@ -9,10 +9,16 @@ class IndexController
         $service = new \web\service\IndexService();
         $data = $service->getTopic($topic);
 
+        $request = \hymie\Request::getInstance();
+
         if ($data == null) {
             R('/');
         } else {
-            return result()->setView("index")->success($service->getTopic($topic));
+            if ($request->isMobile()) {
+                return result()->setView("index_mobile")->success($service->getTopic($topic));
+            } else {
+                return result()->setView("index")->success($service->getTopic($topic));
+            }
         }
     }
 }

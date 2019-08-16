@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title>海米 PHPMVC 手册-{{title}}</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=1,user-scalable=no">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+        <link rel="stylesheet" href="{{ context_path() }}/static/css/mui/mui.min.css">
+        <link rel="stylesheet" href="{{ context_path() }}/static/css/markdown.css">
+		<style>
+            .mui-content{
+                background-color: #ffffff !important;
+            };
+		</style>
+	</head>
+
+	<body>
+		<div id="offCanvasWrapper" class="mui-off-canvas-wrap mui-draggable">
+			<!--侧滑菜单部分-->
+			<aside id="offCanvasSide" class="mui-off-canvas-left">
+				<div id="offCanvasSideScroll" class="mui-scroll-wrapper">
+					<div class="mui-scroll">
+						<div class="title" style="margin-bottom: 25px;">&nbsp;</div>
+						<ul class="mui-table-view mui-table-view-chevron mui-table-view-inverted">
+							<li class="mui-table-view-cell">
+								<a class="mui-navigate-right" id="main">
+									简介
+								</a>
+							</li>
+							<li class="mui-table-view-cell">
+								<a class="mui-navigate-right" id="config">
+									配置文件
+								</a>
+							</li>
+							<li class="mui-table-view-cell">
+								<a class="mui-navigate-right" id="beanfactory">
+                                    Bean工厂
+								</a>
+							</li>
+							<li class="mui-table-view-cell">
+								<a class="mui-navigate-right" id="mvc">
+                                    MVC
+								</a>
+							</li>
+							<li class="mui-table-view-cell">
+								<a class="mui-navigate-right" id="routerandfilter">
+                                    路由和过滤器
+								</a>
+							</li>
+							<li class="mui-table-view-cell">
+								<a class="mui-navigate-right" id="session">
+                                    Session
+								</a>
+                            </li>
+                            <li class="mui-table-view-cell">
+                                <a class="mui-navigate-right" id="pagniation">
+                                    分页
+                                </a>
+                            </li>
+                            <li class="mui-table-view-cell">
+                                <a class="mui-navigate-right" id="fileupload">
+                                    文件上传
+                                </a>
+                            </li>
+                            <li class="mui-table-view-cell">
+                                <a class="mui-navigate-right" id="helpers">
+                                    帮助函数
+                                </a>
+                            </li>
+                            <li class="mui-table-view-cell">
+                                <a class="mui-navigate-right" id="cache">
+                                    缓存
+                                </a>
+                            </li>
+                            <li class="mui-table-view-cell">
+                                <a class="mui-navigate-right" id="logger">
+                                    日志
+                                </a>
+                            </li>     
+                            <div class="title" style="margin-bottom: 10px;">&nbsp;</div>
+                            <li class="mui-table-view-cell">
+                                <a class="mui-navigate-right" id="unittest">
+                                    单元测试
+                                </a>
+                            </li>
+                            <li class="mui-table-view-cell">
+                                <a class="mui-navigate-right" id="server">
+                                    服务器配置示例
+                                </a>
+                            </li>                                                                
+						</ul>
+					</div>
+				</div>
+			</aside>
+			<!--主界面部分-->
+			<div class="mui-inner-wrap">
+				<header class="mui-bar mui-bar-nav">
+					<a href="#offCanvasSide" class="mui-icon mui-action-menu mui-icon-bars mui-pull-left"></a>
+					<h1 class="mui-title">海米 PHPMVC 手册-{{title}}</h1>
+				</header>
+				<div id="offCanvasContentScroll" class="mui-content mui-scroll-wrapper">
+					<div class="mui-scroll">
+						<div class="mui-content-padded">
+                            <div class="markdown-body">
+                                {{ content|raw }}
+                                </div>
+
+						</div>
+
+					</div>
+				</div>
+				<!-- off-canvas backdrop -->
+				<div class="mui-off-canvas-backdrop"></div>
+			</div>
+		</div>
+		<script src="{{ context_path() }}/static/js/mui/mui.min.js"></script>
+		<script>
+			mui.init();
+			 //侧滑容器父节点
+			var offCanvasWrapper = mui('#offCanvasWrapper');
+			 //主界面容器
+			var offCanvasInner = offCanvasWrapper[0].querySelector('.mui-inner-wrap');
+			 //菜单容器
+			var offCanvasSide = document.getElementById("offCanvasSide");
+			// if (!mui.os.android) {
+			// 	document.getElementById("move-togger").classList.remove('mui-hidden');
+			// 	var spans = document.querySelectorAll('.android-only');
+			// 	for (var i = 0, len = spans.length; i < len; i++) {
+			// 		spans[i].style.display = "none";
+			// 	}
+			// }
+			 //移动效果是否为整体移动
+			var moveTogether = false;
+			 //侧滑容器的class列表，增加.mui-slide-in即可实现菜单移动、主界面不动的效果；
+			var classList = offCanvasWrapper[0].classList;
+			 
+			 //主界面和侧滑菜单界面均支持区域滚动；
+			mui('#offCanvasSideScroll').scroll();
+			mui('#offCanvasContentScroll').scroll();
+			 //实现ios平台原生侧滑关闭页面；
+			// if (mui.os.plus && mui.os.ios) {
+			// 	mui.plusReady(function() { //5+ iOS暂时无法屏蔽popGesture时传递touch事件，故该demo直接屏蔽popGesture功能
+			// 		plus.webview.currentWebview().setStyle({
+			// 			'popGesture': 'none'
+			// 		});
+			// 	});
+			// }
+
+            document.getElementById('main').addEventListener('tap', function() {
+                mui.openWindow({
+                    url: '{{ U("/") }}',
+                    show:{
+                        autoShow:false
+                    }
+                });
+            });
+
+            document.getElementById('config').addEventListener('tap', function() {
+                mui.openWindow({
+                    url: '{{ U("/config") }}',
+                    show:{
+                        autoShow:false
+                    }
+                });
+            });
+
+            document.getElementById('beanfactory').addEventListener('tap', function() {
+                mui.openWindow({
+                    url: '{{ U("/beanfactory") }}',
+                    show:{
+                        autoShow:false
+                    }
+                });
+            });
+
+            document.getElementById('mvc').addEventListener('tap', function() {
+                mui.openWindow({
+                    url: '{{ U("/mvc") }}',
+                    show:{
+                        autoShow:false
+                    }
+                });
+            });
+
+            document.getElementById('routerandfilter').addEventListener('tap', function() {
+                mui.openWindow({
+                    url: '{{ U("/routerandfilter") }}',
+                    show:{
+                        autoShow:false
+                    }
+                });
+            });
+
+            document.getElementById('session').addEventListener('tap', function() {
+                mui.openWindow({
+                    url: '{{ U("/session") }}',
+                    show:{
+                        autoShow:false
+                    }
+                });
+            });
+
+            document.getElementById('pagniation').addEventListener('tap', function() {
+                mui.openWindow({
+                    url: '{{ U("/pagniation") }}',
+                    show:{
+                        autoShow:false
+                    }
+                });
+            });
+
+            document.getElementById('fileupload').addEventListener('tap', function() {
+                mui.openWindow({
+                    url: '{{ U("/fileupload") }}',
+                    show:{
+                        autoShow:false
+                    }
+                });
+            });
+
+            document.getElementById('helpers').addEventListener('tap', function() {
+                mui.openWindow({
+                    url: '{{ U("/helpers") }}',
+                    show:{
+                        autoShow:false
+                    }
+                });
+            });
+
+            document.getElementById('cache').addEventListener('tap', function() {
+                mui.openWindow({
+                    url: '{{ U("/cache") }}',
+                    show:{
+                        autoShow:false
+                    }
+                });
+            });
+
+            document.getElementById('logger').addEventListener('tap', function() {
+                mui.openWindow({
+                    url: '{{ U("/logger") }}',
+                    show:{
+                        autoShow:false
+                    }
+                });
+            });
+
+            document.getElementById('unittest').addEventListener('tap', function() {
+                mui.openWindow({
+                    url: '{{ U("/unittest") }}',
+                    show:{
+                        autoShow:false
+                    }
+                });
+            });
+
+            document.getElementById('server').addEventListener('tap', function() {
+                mui.openWindow({
+                    url: '{{ U("/server") }}',
+                    show:{
+                        autoShow:false
+                    }
+                });
+            });
+		</script>
+	</body>
+
+</html>
