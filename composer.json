@@ -1,6 +1,6 @@
 {
     "require": {
-        "hymie/mvc": "^0.5",
+        "hymie/mvc": "^0.6",
         "erusev/parsedown": "^1.7"
     }
 }

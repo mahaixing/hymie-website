@@ -1,3 +1,7 @@
+## Nginx 配置   
+
+以下配置启用了 Pathinfo 和 URL Rewrite。
+
 ```
 server {
     listen       80;
@@ -51,3 +55,6 @@ server {
 
 }
 ```
+
+## Apache 配置
+_待补充_

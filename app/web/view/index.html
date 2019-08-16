@@ -29,8 +29,12 @@
           font-size: 3.5rem;
         }
       }
+
+      body {
+          margin-bottom: 30px;
+      }
     </style>
-    <link href="{{ context_path() }}/static/css/hymie.css?t=13" rel="stylesheet">
+    <link href="{{ context_path() }}/static/css/hymie.css" rel="stylesheet">
     <link href="{{ context_path() }}/static/css/markdown.css" rel="stylesheet">
   </head>
   <body>
@@ -75,12 +79,6 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link {% if topic == 'session' %}active{% endif %}" href="{{ U('/session') }}">
-                <span data-feather="bar-chart-2"></span>
-                Session
-                </a>
-            </li>
-            <li class="nav-item">
                 <a class="nav-link {% if topic == 'pagniation' %}active{% endif %}" href="{{ U('/pagniation') }}">
                 <span data-feather="bar-chart-2"></span>
                 分页
@@ -96,18 +94,6 @@
                 <a class="nav-link {% if topic == 'helpers' %}active{% endif %}" href="{{ U('/helpers') }}">
                 <span data-feather="layers"></span>
                 帮助函数
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link {% if topic == 'cache' %}active{% endif %}" href="{{ U('/cache') }}">
-                <span data-feather="layers"></span>
-                缓存
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link {% if topic == 'logger' %}active{% endif %}" href="{{ U('/logger') }}">
-                <span data-feather="layers"></span>
-                日志
                 </a>
             </li>
             </ul>

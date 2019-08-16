@@ -69,7 +69,7 @@ $config['controller']['xss'] = true;
 // *** 建议修改这个路径，到web主目录外。***
 $config['logger']['name'] = 'HYMIE';
 $config['logger']['path'] = ROOT . DIRECTORY_SEPARATOR . 'runtime' . DIRECTORY_SEPARATOR . 'logs' . DIRECTORY_SEPARATOR . 'application.log';
-$config['logger']['level'] = 'DEBUG';
+$config['logger']['level'] = 'INFO';
 $config['logger']['max_files'] = 30;
 //$config['logger']['format'] = ["[%datetime%] %channel%.%level_name% : %message% - %context% \n","Y-m-d H:i:s"];
 

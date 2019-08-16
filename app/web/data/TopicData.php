@@ -12,7 +12,6 @@ class TopicData
         'config' => ['title' => '配置', 'file' => 'config.md'],
         'fileupload' => ['title' => '文件上传', 'file' => 'fileupload.md'],
         'helpers' => ['title' => '帮助函数和类', 'file' => 'helpers.md'],
-        'logger' => ['title' => '日志', 'file' => 'logger.md'],
         'mvc' => ['title' => 'MVC', 'file' => 'mvc.md'],
         'pagniation' => ['title' => '分页', 'file' => 'pagniation.md'],
         'routerandfilter' => ['title' => '路由及过滤器', 'file' => 'routerandfilter.md'],

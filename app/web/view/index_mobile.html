@@ -50,11 +50,6 @@
                                     路由和过滤器
 								</a>
 							</li>
-							<li class="mui-table-view-cell">
-								<a class="mui-navigate-right" id="session">
-                                    Session
-								</a>
-                            </li>
                             <li class="mui-table-view-cell">
                                 <a class="mui-navigate-right" id="pagniation">
                                     分页
@@ -70,16 +65,6 @@
                                     帮助函数
                                 </a>
                             </li>
-                            <li class="mui-table-view-cell">
-                                <a class="mui-navigate-right" id="cache">
-                                    缓存
-                                </a>
-                            </li>
-                            <li class="mui-table-view-cell">
-                                <a class="mui-navigate-right" id="logger">
-                                    日志
-                                </a>
-                            </li>     
                             <div class="title" style="margin-bottom: 10px;">&nbsp;</div>
                             <li class="mui-table-view-cell">
                                 <a class="mui-navigate-right" id="unittest">
@@ -199,15 +184,6 @@
                 });
             });
 
-            document.getElementById('session').addEventListener('tap', function() {
-                mui.openWindow({
-                    url: '{{ U("/session") }}',
-                    show:{
-                        autoShow:false
-                    }
-                });
-            });
-
             document.getElementById('pagniation').addEventListener('tap', function() {
                 mui.openWindow({
                     url: '{{ U("/pagniation") }}',
@@ -229,24 +205,6 @@
             document.getElementById('helpers').addEventListener('tap', function() {
                 mui.openWindow({
                     url: '{{ U("/helpers") }}',
-                    show:{
-                        autoShow:false
-                    }
-                });
-            });
-
-            document.getElementById('cache').addEventListener('tap', function() {
-                mui.openWindow({
-                    url: '{{ U("/cache") }}',
-                    show:{
-                        autoShow:false
-                    }
-                });
-            });
-
-            document.getElementById('logger').addEventListener('tap', function() {
-                mui.openWindow({
-                    url: '{{ U("/logger") }}',
                     show:{
                         autoShow:false
                     }

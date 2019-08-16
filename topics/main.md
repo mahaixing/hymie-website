@@ -198,7 +198,7 @@ class IndexController
 
   访问浏览器地址 `http://localhost/example/index.php`, ok 大功告成。
 
-## 三、核心组件简介
+## 三、核心组件
 
 ### 3.1 正则表达式
 
@@ -259,6 +259,13 @@ Service 用来实现业务逻辑。控制数据库事务。Service 为遵循 PSR
 控制器执行后可以返回 `\hymie\Result` 对象，`\hymie\Result` 对象支持链式调用，并且如果是 ajax 请求的话， json 视图会根据 `\hymie\Result` 对象组织 json 数据。
 
 如果控制器不反悔 `\hymie\Result` 对象，那么控制器需要自行输出数据到浏览器或者使用 `R($to)` 函数跳转网页。
+
+#### 3.2.7 URL 模式
+支持两种 URL 模式，PATHINFO 和 QueryString，在 `config.php` 中的 `url` 部分进行配置。`url` 配置会影响到 `\hymie\Url` 类生成链接的方式。
+
+> 注: nginx 需要进行配置才能支持 PATHINFO，请参考 **服务器配置示例部分**
+
+> 注: 如果要生成 url_rewrite 的 url, 需要在配置文件的 `url` 部分设置 `url_rewrite` = true
 
 ### 3.3 过滤器
 
@@ -325,3 +332,21 @@ Hymie 框架基于适配器模式提供了通用的分页能力，分页主类�
 2. `NullCache` 当环境为 debug 模式时默认使用，避免缓存影响开发
 
 3. `Psr6Adapter` 适配 PSR-6 缓存实现到 PSR-16 接口规范
+
+### 3.7 日志
+1. 系统日志不能在 `config.bean.php` 中配置, 因为 `BeanFactory` 中使用了日志, 会发生递归调用.
+
+2. 日志使用 `monolog`, 在 `config.php` 中进行配置. 若未配置则默认使用 `\Psr\Log\NullLogger`, 因此所有输出日志的代码不会出错.
+
+3. 日志配置项参考 `config.sample.php` 中相关注释.
+
+4. 可以在 `config.bean.php` 中配置应用要使用的日志 bean. 
+
+### 3.8 RedisSession
+框架实现了 RedisSession, 可以在 `config.php` 中配置 `$config['session']['redis'] = true;` 来开启.
+
+实现类为 `\hymie\session\RedisSession` 使用 [predis](https://packagist.org/packages/predis/predis) 与 redis 交互。默认会在 `config.bean.php` 中查找名为 `predis` 的 bean 配置，如未找到则抛出 `\hymie\session\SessionException`.
+
+代码中需要使用 `start_session()` 函数来启动 session, 该函数会根据配置选择启动 php session 或者 redis session. **建议使用此函数来启动session, 而不是内置的 [`session_start`](https://www.php.net/session_start) 函数**
+
+> Web 环境是一个多线程(或进程)的并发环境. 为了保证数据一致性，会对每次页面请求的会话进行加锁. 因此, 需要尽量快的完成 Session 的取值和赋值操作. 这不仅针对 RedisSession 对于其他 Session 实现也适用.
