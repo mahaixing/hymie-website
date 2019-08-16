@@ -327,4 +327,7 @@ $beanOther = get_bean('\SomeOtherClass', null, true);
   
   4. `predis`    
     `\hymie\session\RedisSession` 会用到该名称的 `Predis` 需要在  `config.bean.php`中完善这个 bean 的配置。
+
+  5. `logger`  
+    日志对象 bean，需配置符合 psr log 规范的日志框架实现
     

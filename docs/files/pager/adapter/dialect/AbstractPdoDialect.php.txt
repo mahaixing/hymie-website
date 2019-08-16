@@ -1,0 +1,59 @@
+<?PHP
+/**
+ * Project:       Hymie PHP MVC framework
+ * File:          AbstractPdoDialect.php
+ * Created Date:  2019-08-11
+ * 
+ * Github:        https://github.com/mahaixing/hymie-mvc
+ * Gitee:         https://gitee.com/mahaixing/hymie-mvc
+ * Composer:      https://packagist.org/packages/hymie/mvc
+ * 
+ * @author:       mahaixing(mahaixing@gmail.com)
+ * @license:      Apache License 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+ */
+
+namespace hymie\pager\adapter\dialect;
+
+use Webmozart\Assert\Assert;
+
+/**
+ * 分页语句 Dialect, 不同数据库有不同的分页语句写法，因此需要针对不同类型数据库分别实现
+ */
+abstract class AbstractPdoDialect
+{
+    public abstract function getDataSql($sql, $page, $pageSize);
+
+    public abstract function getDataCountSql($sql);
+
+    /**
+     * 获取分页用的特定数据库语句。
+     * $name 可以是通过 $pdo->getAttribute(\PDO::ATTR_DRIVER_NAME) 获取的驱动名
+     * 函数会尝试匹配 \hymie\pager\adapter\dialect\ucfirst($name)PdoDialect 类。
+     * 
+     * $name 也可以是类名（包含名字空间），这个类名可以是用户自己实现的特定数据库分页语句类。
+     * 
+     * @param sting $name 驱动名或者类名（含名字空间）
+     */
+    public static function getDialect($name)
+    {
+        $className = "\\hymie\\pager\\adapter\\dialect\\" . \ucfirst($name) . 'PdoDialect';
+        $instance = get_bean($className);
+        
+        if ($instance == null) {
+            $instance = get_bean($name);
+        }
+
+        if ($instance == null) {
+            log_error(sprintf(
+                "%s: PDO dialect '%s' class does not exists.", __CLASS__, $name
+            ));
+
+            throw new \InvalidArgumentException(sprintf(
+                "%s: PDO dialect '%s' class does not exists.", __CLASS__, $name
+            ));
+        }
+
+        Assert::isInstanceOf($instance, "\\hymie\pager\\adapter\\dialect\\AbstractPdoDialect");
+        return $instance;
+    }
+}

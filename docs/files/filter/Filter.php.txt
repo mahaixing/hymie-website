@@ -1,0 +1,124 @@
+<?PHP
+/**
+ * Project:       Hymie PHP MVC framework
+ * File:          Filter.php
+ * Created Date:  2019-08-11
+ * 
+ * Github:        https://github.com/mahaixing/hymie-mvc
+ * Gitee:         https://gitee.com/mahaixing/hymie-mvc
+ * Composer:      https://packagist.org/packages/hymie/mvc
+ * 
+ * @author:       mahaixing(mahaixing@gmail.com)
+ * @license:      Apache License 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+ */
+
+namespace hymie\filter;
+
+/**
+ * 过滤器在 Controller 执行前做一系列检查工作。
+ *
+ * 如果通过检查则返回 true，后续过滤器继续执行，如果所有过滤器都返回
+ * true，则 Controller 可以执行。
+ * 
+ * 如果某条过滤器检查不通过，Filter 可以进行以下处理：
+ * 
+ * 1. 返回 \hymie\Result 结果对象
+ *    如果是 ajax 请求，则 \hymie\Application 会直接向浏览器输出 json
+ *    如果不是 ajax 请求，则会返回到相匹配的视图
+ * 
+ * 2. 在 Filter 中使用 R($toPath) 进行页面跳转
+ * 
+ * 3. 返回代表视图名的 string
+ *    
+ * @see \hymie\filter\FilterChain
+ */
+abstract class Filter
+{
+
+    private $targetPath;
+
+    private $excludePath;
+
+    /**
+     * 过滤器方法，过滤器在 Controller 执行前做一系列检查工作。
+     *
+     * 如果通过检查则返回 true，后续拦截器继续执行，如果全部通过
+     * 怎控制器可以执行。
+     * 
+     * 返回：
+     * 
+     * 1. 返回 \hymie\Result 结果对象
+     *    如果是 ajax 请求，则 \hymie\Application 会直接向浏览器输出 json
+     *    如果不是 ajax 请求，则会返回到相匹配的视图
+     * 
+     * 2. 在 Filter 中使用 R($toPath) 进行页面跳转
+     * 
+     * 3. 返回代表视图名的 string
+     *
+     * @return boolean|\hymie\Result
+     */
+    abstract public function doFilter();
+
+    /**
+     * 检测当前请求路径是否满足过滤器配置的正则表达式
+     *
+     * @param string $regex
+     * @param string $path
+     * @return boolean
+     */
+    private function matchPath($regex, $path)
+    {
+        $pattern = sprintf('#^%s\Z#i', $regex);
+        return (preg_match($pattern, $path) > 0);
+    }
+
+    public function accept($path)
+    {
+        if ($this->checkInExclude($path)) {
+            log_debug(sprintf('%s: %s is excluded from intercepter config.', self::class, $path));
+            return false;
+        }
+
+        return $this->matchPath($this->targetPath, $path);
+    }
+
+    /**
+     * 检查路径是否是不需要拦截的路径
+     */
+    private function checkInExclude($path)
+    {
+        if (is_string($this->excludePath)) {
+            return $this->matchPath($this->excludePath, $path);
+        }
+
+        foreach ($this->excludePath as $exclude) {
+            if ($this->matchPath($exclude, $path)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public function setTargetPath($value)
+    {
+        $this->targetPath = $value;
+    }
+
+    public function setExcludePath($value)
+    {
+        $this->excludePath = $value;
+    }
+
+    public function getTargetPath()
+    {
+        return $this->targetPath;
+    }
+
+    public function getExcludePath()
+    {
+        return $this->excludePath;
+    }
+
+}
+

@@ -1,0 +1,59 @@
+<?PHP
+
+/**
+ * Project:       Hymie PHP MVC framework
+ * File:          JsonView.php
+ * Created Date:  2019-08-11
+ * 
+ * Github:        https://github.com/mahaixing/hymie-mvc
+ * Gitee:         https://gitee.com/mahaixing/hymie-mvc
+ * Composer:      https://packagist.org/packages/hymie/mvc
+ * 
+ * @author:       mahaixing(mahaixing@gmail.com)
+ * @license:      Apache License 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+ */
+
+namespace hymie\view;
+
+/**
+ * json 视图
+ */
+class JsonView extends View
+{
+
+    /**
+     * 构造函数
+     */
+    public function __construct()
+    {
+        $this->contentType = "application/json; charset=utf-8";
+        $this->header();
+    }
+
+    /**
+     * 将结果对象转换为数组再 json_encode 输出
+     *
+     * @param \hymie\Result $result
+     * @return void
+     */
+    public function render($result)
+    {
+        $returnVal = array();
+        $resultStatus = $result->getStatus();
+        $returnVal['code'] = $result->getStatus();
+
+        if ($resultStatus == \hymie\Result::SUCCESS) {
+            $returnVal['data'] = $result->getModel();
+            $returnVal['message'] = $result->getMessage();
+        } elseif ($resultStatus == \hymie\Result::FAIL) {
+            $returnVal['data'] = $result->getModel();
+            $returnVal['message'] = $result->getMessage();
+        } else {
+            $returnVal['data'] = $result->getModel();
+            $returnVal['message'] = $result->getMessage();
+        }
+
+        echo json_encode($returnVal);
+    }
+}
+

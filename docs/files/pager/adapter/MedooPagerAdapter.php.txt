@@ -1,0 +1,67 @@
+<?PHP
+/**
+ * Project:       Hymie PHP MVC framework
+ * File:          MedooPagerAdapter.php
+ * Created Date:  2019-08-11
+ * 
+ * Github:        https://github.com/mahaixing/hymie-mvc
+ * Gitee:         https://gitee.com/mahaixing/hymie-mvc
+ * Composer:      https://packagist.org/packages/hymie/mvc
+ * 
+ * @author:       mahaixing(mahaixing@gmail.com)
+ * @license:      Apache License 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+ */
+
+namespace hymie\pager\adapter;
+
+use Symfony\Component\Cache\Adapter\PdoAdapter;
+
+/**
+ * Medoo 分页适配器
+ */
+class MedooPagerAdapter implements PagerAdapterInterface
+{
+    private $medoo;
+    private $tableOrSql;
+    private $joinOrColumnsOrMap;
+    private $columns;
+    private $where;
+
+    /**
+     * 构造函数
+     *
+     * @param Medoo\Medoo $medoo
+     * @param string $table
+     * @param array $join
+     * @param array|string $columns
+     */
+    public function __construct($medoo, $tableOrSql, $joinOrColumnsOrMap = null, $columns = null, $where = null)
+    {
+        $this->medoo = $medoo;
+        $this->tableOrSql = $tableOrSql;
+        $this->joinOrColumnsOrMap = $joinOrColumnsOrMap;
+        $this->columns = $columns;
+        $this->where = $where;
+    }
+
+    public function getDataCount() 
+    {
+        if ($this->where == null) {
+            return $this->medoo->count($this->tableOrSql, $this->joinOrColumnsOrMap, $this->columns);
+        } else {
+            return $this->medoo->count($this->tableOrSql, $this->joinOrColumnsOrMap, $this->columns, $this->where);
+        }
+    }
+
+    public function getData($page, $pageSize)
+    {
+        if ($this->where == null) {
+            $where = ['LIMIT' => [$page, $pageSize]];
+            return $this->medoo->select($this->tableOrSql, $this->joinOrColumnsOrMap, $where);
+        } else {
+            // don't care 3721, set value.
+            $where['LIMIT'] = [$page, $pageSize];
+            return $this->medoo->select($this->tableOrSql, $this->joinOrColumnsOrMap, $this->columns, $where);
+        }
+    }
+}

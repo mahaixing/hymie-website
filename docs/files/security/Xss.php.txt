@@ -1,0 +1,52 @@
+<?PHP
+
+/**
+ * Project:       Hymie PHP MVC framework
+ * File:          Xss.php
+ * Created Date:  2019-08-11
+ * 
+ * Github:        https://github.com/mahaixing/hymie-mvc
+ * Gitee:         https://gitee.com/mahaixing/hymie-mvc
+ * Composer:      https://packagist.org/packages/hymie/mvc
+ * 
+ * @author:       mahaixing(mahaixing@gmail.com)
+ * @license:      Apache License 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+ */
+
+namespace hymie\security;
+
+/**
+ * 目前使用 voku antixss。
+ * 这个类存在的目的是为了避免代码中对三方框架的直接依赖，以方便以后三方库的替换和升级。
+ */
+class Xss
+{
+    /**
+     * xss 实现
+     *
+     * @var object
+     */
+    private $xssCleaner;
+
+    use \hymie\traits\Singleton;
+
+    /**
+     * 构造函数
+     */
+    public function __construct()
+    {
+        $this->xssCleaner = new \voku\helper\AntiXSS();
+    }
+
+    /**
+     * xss 清理
+     *
+     * @param string $string
+     * @return string
+     */
+    public function cleanXss($string)
+    {
+        return $this->xssCleaner->xss_clean($string);
+    }
+}
+

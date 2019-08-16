@@ -1,0 +1,37 @@
+<?php
+/**
+ * Project:       Hymie PHP MVC framework
+ * File:          MysqlPdoDialect.php
+ * Created Date:  2019-08-11
+ * 
+ * Github:        https://github.com/mahaixing/hymie-mvc
+ * Gitee:         https://gitee.com/mahaixing/hymie-mvc
+ * Composer:      https://packagist.org/packages/hymie/mvc
+ * 
+ * @author:       mahaixing(mahaixing@gmail.com)
+ * @license:      Apache License 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+ */
+
+namespace hymie\pager\adapter\dialect;
+
+/**
+ * Mysql 分页方言
+ */
+class MysqlPdoDialect extends AbstractPdoDialect
+{
+    public function getDataSql($sql, $page, $pageSize)
+    {
+        $sql = sprintf("select * from (%s) as t limit %s, %s", $sql, $page, $pageSize);
+        log_debug(sprintf("MySqlPdoDialect: Use '%s' to select page data.", $sql));
+
+        return $sql;
+    }
+
+    public function getDataCountSql($sql)
+    {
+        $sql = sprintf("select count(*) as cnt from (%s) as t", $sql);
+        log_debug(sprintf("MySqlPdoDialect: Use '%s' to select page data count.", $sql));
+
+        return $sql;
+    }
+}

@@ -1,0 +1,65 @@
+<?PHP
+/**
+ * Project:       Hymie PHP MVC framework
+ * File:          Upload.php
+ * Created Date:  2019-08-11
+ * 
+ * Github:        https://github.com/mahaixing/hymie-mvc
+ * Gitee:         https://gitee.com/mahaixing/hymie-mvc
+ * Composer:      https://packagist.org/packages/hymie/mvc
+ * 
+ * @author:       mahaixing(mahaixing@gmail.com)
+ * @license:      Apache License 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+ */
+
+namespace hymie\upload;
+
+/**
+ * 文件上传基类
+ */
+abstract class Upload
+{
+    /**
+     * 执行文件上传
+     *
+     * @param string $field html 文件上传组件 name
+     * @return void
+     */
+    abstract public function doUpload($field);
+
+    /**
+     * 获取上传类的工厂方法
+     *
+     * @param string $type 上传类型 file | qiniu
+     * @param array $config 配置数组
+     * @return void
+     */
+    public static function getUpload($type = 'file', $config = [])
+    {
+        $configGlobal = get_config('upload');
+        $newConfig = [];
+        $type = 'file';
+        if (array_key_exists('type', $configGlobal)) {
+            $type = $configGlobal['type'];
+        }
+
+        // 如果传入配置与全局配置不同，使用传入的配置，如果全局配置的
+        foreach ($configGlobal[$type] as $k => $v) {
+            if (($k === 'allowed_types') && array_key_exists($k, $config)) {
+                $newConfig[$k] = $config[$k] . '|' . $configGlobal[$k];
+                continue;
+            }
+
+            if (!array_key_exists($k, $config)) {
+                $newConfig[$k] = $v;
+            }
+        }
+
+        if ($type === 'file') {
+            return new FileUpload($newConfig);
+        } elseif ($type == 'qiniu') {
+            return new QiniuUpload($newConfig);
+        }
+    }
+}
+

@@ -1,0 +1,45 @@
+<?PHP
+
+/**
+ * Project:       Hymie PHP MVC framework
+ * File:          Singleton.php
+ * Created Date:  2019-08-11
+ * 
+ * Github:        https://github.com/mahaixing/hymie-mvc
+ * Gitee:         https://gitee.com/mahaixing/hymie-mvc
+ * Composer:      https://packagist.org/packages/hymie/mvc
+ * 
+ * @author:       mahaixing(mahaixing@gmail.com)
+ * @license:      Apache License 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+ */
+
+namespace hymie\traits;
+
+/**
+ * 单例 trait
+ */
+trait Singleton
+{
+    /**
+     * 静态实例
+     *
+     * @var object
+     */
+    private static $instance;
+
+    /**
+     * 单例方法
+     *
+     * @return void
+     */
+    public static function getInstance()
+    {
+
+        if (self::$instance === null) {
+            self::$instance = new static();
+        }
+
+        return self::$instance;
+    }
+}
+

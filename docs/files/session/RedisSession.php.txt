@@ -1,0 +1,263 @@
+<?PHP
+/**
+ * Project:       Hymie PHP MVC framework
+ * File:          RedisSession.php
+ * Created Date:  2019-08-11
+ * 
+ * Github:        https://github.com/mahaixing/hymie-mvc
+ * Gitee:         https://gitee.com/mahaixing/hymie-mvc
+ * Composer:      https://packagist.org/packages/hymie/mvc
+ * 
+ * @author:       mahaixing(mahaixing@gmail.com)
+ * @license:      Apache License 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+ */
+
+namespace hymie\session;
+
+use Prophecy\Exception\Prediction\PredictionException;
+
+/**
+ * Redis Session
+ *
+ * 在 read 函数时 获取 锁，每次 write 时 释放-获取 锁，close 时释放锁。
+ *
+ * php 的 SessionHandler 执行过程是：
+ *
+ *   session_start -> open -> [read | write] -> close
+ *   调用 session_destory 会调用 destory 方法。
+ *   调用 session_gc 会调用 gc 方法。
+ *   调用 session_write_close 会滴用 write -> close 方法。
+ */
+class RedisSession implements \SessionHandlerInterface
+{
+
+    // predis 实例
+    private $redis;
+
+    // session 前缀
+    private $keyPerfix = 'SESSION:';
+
+    // session 锁 redis key
+    private $lockKey;
+
+    // 是否锁定
+    private $locked;
+
+    // session id
+    private $sessionId;
+
+    /**
+     * 构造函数
+     */
+    public function __construct()
+    {
+        $this->config = get_config('session');
+
+        if ($this->config['match_ip'] === true) {
+            $this->keyPerfix .= $_SERVER['REMOTE_ADDR'] . ':';
+        }
+    }
+
+    /**
+     * 获取会话锁，方式并发读取或者写入会话数据到redis。
+     *
+     * @param     string    $sessionId session id
+     * @return     boolean 是否成功获取锁
+     */
+    private function getLock($sessionId)
+    {
+        if ($this->lockKey == $this->keyPerfix . $sessionId . ":lock") {
+            return $this->redis->expire($this->lockKey, 300) == 1 ? true : false;
+        }
+
+        //生成 lock key;
+        $lockKey = $this->keyPerfix . $sessionId . ":lock";
+        //尝试次数为0
+        $attempt = 0;
+
+        do {
+            // 尝试获取 redis 锁的 ttl 数值，如果 > 0 说明有并发的请求在使用锁
+            if (($ttl = $this->redis->ttl($lockKey)) > 0) {
+                sleep(1);
+                continue;
+            }
+
+            // -1 代表 key 存在但是 ttl 时间已经耗尽
+            // -2 代表 key 不存在
+            $result = ($ttl == -2) ? $this->redis->set($lockKey, time(), 'ex', 300, 'nx') :
+            $this->redis->setex($lockKey, time(), 300);
+
+            if ($result != 'OK') {
+                log_error("Session: obtain sessoin lock error, Session Id: " . $sessionId);
+                return false;
+            }
+
+            $this->lockKey = $lockKey;
+            break;
+        } while (++$attempt < 30);
+
+        if ($ttl == 30) {
+            log_error("Session: could not obtain session lock after 30 attemp. Session Id: " . $sessionId);
+            return false;
+        }
+
+        $this->locked = true;
+        return true;
+    }
+
+    /**
+     * 释放锁
+     *
+     * @return boolean 是否成功
+     */
+    private function releaseLock()
+    {
+        if ($this->locked) {
+            $result = $this->redis->del($this->lockKey);
+        }
+
+        $this->lockKey = null;
+        $this->locked = false;
+
+        return ($result > 0);
+    }
+
+    /**
+     * open 函数，调用 session_start 会调用此函数，类似于构造函数
+     *
+     * @param string     $save_path     保存路径 这里用哦不到
+     * @param string    $name        名字 这里用不到
+     * @return boolean 初始化是否成功
+     */
+    public function open($save_path, $name)
+    {
+        try {
+            $this->redis = get_bean('predis');
+            if ($this->redis == null) {
+                throw new SessionException(sprintf("%s: ‘predis’ bean does not configred or some error with this bean configuration!"));
+            }
+
+            if ($this->config['db'] !== null) {
+                $this->redis->select($this->config['db']);
+            }
+
+            return true;
+        } catch (PredisException $e) {
+            log_error('Session: Could not open session, Exception is ' . $e->getMessage());
+            return false;
+        }
+
+    }
+
+    /**
+     * 读取持久化在 redis 中的会话数据，返回给 php 来填充 $_SESSION 全局变量
+     *
+     * @param string    $sessionId 会话id，由 php 生成
+     * @return string    会话数据，如出现错误返回空字符串
+     */
+    public function read($sessionId)
+    {
+        if (!isset($this->redis)) {
+            return false;
+        }
+
+        try {
+            if (!$this->getLock($sessionId)) {
+                return '';
+            }
+
+            // 保存 sessionid，用来在 write 方法中检测 sessionid 是否重新生成
+            $this->sessionId = $sessionId;
+            $sessionData = $this->redis->get($this->keyPerfix . $sessionId);
+
+            return (is_null($sessionData) ? '' : $sessionData);
+        } catch (PredictionException $e) {
+            log_error('Session: Could not read Session, Exception is ' . $e->getMessage());
+            return '';
+        }
+    }
+
+    /**
+     * 持久化会话数据
+     *
+     * @param string    $sessionId         session id
+     * @param string     $sessionData    序列化后的 $_SESSION 数据
+     */
+    public function write($sessionId, $sessionData)
+    {
+        if (!isset($this->redis)) {
+            return false;
+        }
+        try {
+            // 如果 sessionid 被重新生成，与获取锁时不同
+            if ($sessionId !== $this->sessionId) {
+                // 先释放锁，再重新获取锁
+                if (!$this->releaseLock() || !$this->getLock($sessionId)) {
+                    return false;
+                }
+
+                $this->sessionId = $sessionId;
+            }
+
+            $this->redis->expire($this->lockKey, 300);
+
+            $result = $this->redis->setex($this->keyPerfix . $sessionId, $this->config['expiration'], $sessionData);
+
+            return ($result == 'OK');
+
+        } catch (PredictionException $e) {
+            log_error('Session: Could not write Session, Exception is ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * 关闭 Handler
+     */
+    public function close()
+    {
+        if (!isset($this->redis)) {
+            return false;
+        }
+
+        try {
+            $this->releaseLock();
+            $this->redis->quit();
+            $this->redis = null;
+            return true;
+        } catch (PredictionException $e) {
+            log_error('Session: Could not close Session, Exception is ' . $e->getMessage());
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * 当 session_destory 调用时调用此函数。清除当前已保存的 session 数据
+     */
+    public function destroy($sessionId)
+    {
+        if (!isset($this->redis)) {
+            return false;
+        }
+
+        if (($result = $this->redis->del($this->keyPerfix . $sessionId)) !== 1) {
+            log_error('Session: Destory session error:  ' . var_export($result, true) . ' .');
+            return false;
+        }
+
+        $this->sessionId = null;
+        return true;
+    }
+
+    /**
+     * 过期 session 回收，这个由 redis key 的过期时间控制。
+     */
+    public function gc($maxlifetime)
+    {
+        return true;
+    }
+
+}
+

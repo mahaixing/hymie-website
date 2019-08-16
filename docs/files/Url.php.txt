@@ -1,0 +1,237 @@
+<?PHP
+
+/**
+ * Project:       Hymie PHP MVC framework
+ * File:          Url.php
+ * Created Date:  2019-08-11
+ * 
+ * Github:        https://github.com/mahaixing/hymie-mvc
+ * Gitee:         https://gitee.com/mahaixing/hymie-mvc
+ * Composer:      https://packagist.org/packages/hymie/mvc
+ * 
+ * @author:       mahaixing(mahaixing@gmail.com)
+ * @license:      Apache License 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+ */
+
+namespace hymie;
+
+use Webmozart\Assert\Assert;
+
+/**
+ * 用来生成 URL 链接
+ *
+ * 根据配置文件中 route 配置生成 pathinfo 格式的 url 或者 querystring 格式的 url
+ */
+class Url
+{
+    /**
+     * 配置信息
+     *
+     * @var array
+     */
+    private $config;
+
+    /**
+     * url地址
+     *
+     * @var [type]
+     */
+    private $url;
+
+    private $toPath;
+
+    private $params;
+
+    private $scriptFile;
+
+    /**
+     * 生成 url 地址，
+     *
+     * @param string $toPath 请求地址以 / 分割。
+     * @param string $params 请求参数，如果是数组则必须是键值对，否则是 a=b&b=c&c=d 形式
+     * @param string $scriptFile 入口 php 文件名，可为空
+     */
+    public function __construct($toPath, $params = '', $scriptFile = null)
+    {
+        $this->config = get_config("url");
+        $this->toPath = $toPath;
+        $this->params = $params;
+        $this->scriptFile = $scriptFile;
+    }
+
+    /**
+     * 生成地址
+     *
+     * @return void
+     */
+    private function genUrl()
+    {
+        if ($this->url != null) {
+            return;
+        }
+        $queryString = is_array($this->params) ? $this->paramsFromArray($this->params) : $this->params;
+
+        // 如果是以 http(s) 开头则返回直接返回
+        if (preg_match('/^http(s)?:\/\//i', $this->toPath) > 0) {
+            return empty($queryString) ? $this->toPath : $this->toPath . '?' . $queryString;
+        }
+        $this->scriptFileName = ($this->scriptFile == null) ? pathinfo($_SERVER['SCRIPT_NAME'], PATHINFO_BASENAME) : $this->scriptFile;
+        $this->genToPath($queryString);
+
+        $this->url = context_path() . '/' . $this->toPath;
+    }
+
+    /**
+     * 添加查询字符串
+     *
+     * @param string|array $stringOrArray
+     * @return string
+     */
+    public function append($stringOrArray)
+    {
+        Assert::notNull($stringOrArray);
+
+        $this->genUrl();
+
+        $queryString = is_string($stringOrArray) ? $stringOrArray : $this->paramsFromArray($stringOrArray);
+
+        if (strpos($queryString, '&') === 0) {
+            $queryString = substr($queryString, 1, strlen($queryString));
+        }
+
+        if (strpos($this->url, '?') !== false) {
+            return $this->url . '&' . $queryString;
+        } else {
+            return $this->url . '?' . $queryString;
+        }
+    }
+
+    /**
+     * 获取网站地址
+     *
+     * @return string
+     */
+    private function getHttpHost()
+    {
+        $host = '';
+        if (defined('HTTP_HOST') && !empty(HTTP_HOST)) {
+            $host = HTTP_HOST;
+        } else {
+            $host = $this->getProtocol() . $_SERVER['HTTP_HOST'];
+        }
+
+        return $host . '/';
+    }
+
+    /**
+     * 获取请求类型 http 或者 https
+     *
+     * @return void
+     */
+    private function getProtocol()
+    {
+        if (!empty($_SERVER['HTTPS']) && strtolower($_SERVER['HTTPS']) !== 'off') {
+            return 'https://';
+        } elseif (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && strtolower($_SERVER['HTTP_X_FORWARDED_PROTO']) === 'https') {
+            return 'https://';
+        } elseif (!empty($_SERVER['HTTP_FRONT_END_HTTPS']) && strtolower($_SERVER['HTTP_FRONT_END_HTTPS']) !== 'off') {
+            return 'https://';
+        } elseif ($_SERVER['SERVER_PORT'] == 443) {
+            return 'https://';
+        }
+
+        return 'http://';
+    }
+
+    /**
+     * 获取请求路径，如果开启 querystring 模式，返回的请求路径会以 . 分割
+     * 
+     * 函数会根据配置生成 pathinfo 形式 url 或者 querystring 形式 url
+     *
+     * @param string $queryString 请求参数
+     * @return string
+     */
+    private function genToPath($queryString)
+    {
+        if (stripos($this->toPath, '/') === 0) {
+            $this->toPath = substr($this->toPath, 1);
+        }
+
+        if ($this->config['enable_query_string']) {
+            $hasQuestionMark = false;
+            if (empty($this->toPath)) {
+                $this->toPath = $this->scriptFileName;
+            } else {
+                $this->toPath = str_replace('/', '.', $this->toPath);
+                $this->toPath = $this->scriptFileName . '?' . $this->config['query_string_key'] . '=' . $this->toPath;
+                $hasQuestionMark = true;
+            }
+
+            if (!empty($queryString)) {
+                $queryString = ($hasQuestionMark == true) ? '&' . $queryString : '?' . $queryString;
+                $this->toPath = $this->toPath . $queryString;
+            }
+        } else {
+            if (!empty($queryString)) {
+                $queryString = '?' . $queryString;
+            }
+            $this->toPath = $this->toPath . $queryString;
+            $this->toPath = ($this->config['rewrite_enabled'] == true) ? $this->toPath : $this->scriptFileName . '/' . $this->toPath;
+        }
+    }
+
+    /**
+     * 获取 querystring 形式参数列表
+     *
+     * @param array $params
+     * @return void
+     */
+    private function paramsFromArray($params)
+    {
+        Assert::isArray($params);
+
+        $queryString = '';
+        foreach ($params as $k => $v) {
+            $queryString .= "$k=$v&";
+        }
+        if (strlen($queryString) > 0) {
+            $queryString = substr($queryString, 0, -1);
+        }
+
+        return $queryString;
+    }
+
+    /**
+     * setter for property config
+     *
+     * @param array $config
+     * @return array
+     */
+    public function setConfig($config)
+    {
+        $this->config = $config;
+    }
+
+    /**
+     * getter for property config
+     * 
+     * @return void
+     */
+    public function getConfig()
+    {
+        return $this->config;
+    }
+
+    /**
+     * getter for property url
+     * 
+     * @param boolean $short true 返回不带 http(s)://host 的地址，反之则带
+     * @return string
+     */
+    public function getUrl($short = true)
+    {
+        $this->genUrl();
+        return ($short == true) ? $this->url : $this->getHttpHost() . $this->url;
+    }
+}
+

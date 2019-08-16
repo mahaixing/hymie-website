@@ -1,0 +1,27 @@
+<?PHP
+/**
+ * Project:       Hymie PHP MVC framework
+ * File:          QiniuUpload.php
+ * Created Date:  2019-08-11
+ *
+ * Github:        https://github.com/mahaixing/hymie-mvc
+ * Gitee:         https://gitee.com/mahaixing/hymie-mvc
+ * Composer:      https://packagist.org/packages/hymie/mvc
+ *
+ * @author:       mahaixing(mahaixing@gmail.com)
+ * @license:      Apache License 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+ */
+
+namespace hymie\upload;
+
+/**
+ * 七牛云上传，暂未实现
+ */
+class QiniuUpload extends Upload
+{
+    public function doUpload($field)
+    {
+        throw new RuntimeException('not implement yet!');
+    }
+}
+

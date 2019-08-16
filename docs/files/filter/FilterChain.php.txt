@@ -1,0 +1,123 @@
+<?PHP
+/**
+ * Project:       Hymie PHP MVC framework
+ * File:          FilterChain.php
+ * Created Date:  2019-08-11
+ * 
+ * Github:        https://github.com/mahaixing/hymie-mvc
+ * Gitee:         https://gitee.com/mahaixing/hymie-mvc
+ * Composer:      https://packagist.org/packages/hymie/mvc
+ * 
+ * @author:       mahaixing(mahaixing@gmail.com)
+ * @license:      Apache License 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+ */
+
+namespace hymie\filter;
+
+use Webmozart\Assert\Assert;
+
+/**
+ * 拦截器执行控制。
+ *
+ * Application 会使用此类来执行拦截器以及控制器。
+ */
+class FilterChain
+{
+    const FILTER_FILE = 'config.filter.php';
+
+    const CLASS_KEY = 'class';
+
+    const EXCLUDE_KEY = 'exclude';
+
+    private $filters = [];
+
+    private $cacheKey = 'filter_info.';
+
+    /**
+     * 构造函数获取缓存中的 Filter 定义数组，否则重新构造。
+     *
+     * @param array $modules
+     */
+    public function __construct($modules)
+    {
+        Assert::isArray($modules, 
+            sprintf("%s: param 'module' need an array, '%s' given.", __CLASS__, get_type($modules)));
+        
+        $this->cache = \hymie\cache\Cache::getInstance();
+        $this->cacheKey .= implode(".", $modules);
+        if ($this->cache->has($this->cacheKey)) {
+            $this->filters = $this->cache->get($this->cacheKey);
+        } else {
+            $this->addFilters($modules);
+            $this->cache->set($this->cacheKey, $this->filters);
+        }
+    }
+
+    /**
+     * 根据模块定义，读取每个模块下的 Filter 配置（若存在），生成 Filter 定义数组。
+     *
+     * @param array $modules
+     * @return void
+     */
+    public function addFilters($modules)
+    {
+        foreach ($modules as $k => $name) {
+            $filterFile = APP_ROOT . DIRECTORY_SEPARATOR . $name . DIRECTORY_SEPARATOR . self::FILTER_FILE;
+            if (! file_exists($filterFile)) {
+               continue;
+            }
+
+            $filterConfig = include $filterFile;
+        
+            if (! is_array($filterConfig)) {
+                continue;
+            }
+
+            $this->filters += $filterConfig;
+        }
+    }
+
+    /**
+     * 按照定义顺序执行拦截器的 pre 方法。
+     */
+    public function executeFilter()
+    {
+        $path = \hymie\Request::getInstance()->path();
+
+        foreach ($this->filters as $targetPath => $filterDef) {
+            $filterClassName = $filterDef[self::CLASS_KEY];
+            $filter = get_bean($filterClassName, null, true);
+
+            if ($filter == null) {
+                log_error(sprintf("%s: '%s' does not exists.", self::class, $filterClassName));
+                $this->cache->delete($this->cacheKey);
+
+                continue;
+            }
+            $filter->setTargetPath($targetPath);
+            $filter->setExcludePath($filterDef[self::EXCLUDE_KEY]);
+
+            if ($filter->accept($path)) {
+                log_debug(sprintf("%s: '%s' accept path '%s', use it. ", self::class, $filterClassName, $path));
+                $result = $filter->doFilter();
+                if ($result !== true) {
+                    return $result;
+                }
+            } 
+            log_debug(sprintf("%s: '%s' does not accept path '%s', ignore it. ", self::class, $filterClassName, $path));
+        }
+
+        return true;
+    }
+
+    public function getFilters()
+    {
+        return $this->filters;
+    }
+
+    public function setFilters($value)
+    {
+        $this->filters = $value;
+    }
+}
+

@@ -1,0 +1,414 @@
+<?PHP
+/**
+ * Project:       Hymie PHP MVC framework
+ * File:          Pager.php
+ * Created Date:  2019-08-11
+ * 
+ * Github:        https://github.com/mahaixing/hymie-mvc
+ * Gitee:         https://gitee.com/mahaixing/hymie-mvc
+ * Composer:      https://packagist.org/packages/hymie/mvc
+ * 
+ * @author:       mahaixing(mahaixing@gmail.com)
+ * @license:      Apache License 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+ */
+
+namespace hymie\pager;
+
+use Webmozart\Assert\Assert;
+
+/**
+ * 分页工具类。
+ *
+ * 对于每个需要分页的 Dao 方法，需要注意以下约束：
+ * 1. 最后两个参数必须是 $page（当前页）, $pageSize （页大小）（具体参数名可随意）。
+ * 2. 有对应的 Count 方法，Count 方法与分页方法区别是不需要最后两个参数。
+ *
+ * 例如：
+ *
+ * class SomeDao
+ * {
+ *      public function someMethod($arg1, $arg2, $page, $pageSize) {}
+ *
+ *      public function someMethodCount($arg1, $args) {}
+ * }
+ *
+ * service 对应的方法中这样调用：
+ *
+ * $pager = new \hymie\pager\Pager(new SomeDao, 'arg1', 'arg2');
+ */
+class Pager
+{
+    const DEFAULT_PAGE_KEY = 'p';
+
+    const DEFAULT_PAGE_SIZE_KEY = 's';
+
+    const DEFAULT_PAGE_SIZE = 10;
+
+    /**
+     * 分页 key
+     *
+     * @var [type]
+     */
+    private $pageKey;
+
+    /**
+     * 分页大小 key
+     *
+     * @var [type]
+     */
+    private $pageSizeKey;
+
+    /**
+     * 分页适配器
+     *
+     * @var hymie\pager\adapter\PagerAdapterInterface
+     */
+    private $adapter;
+
+    /**
+     * 总数据条数
+     *
+     * @var int
+     */
+    private $dataCount;
+
+    /**
+     * 数据
+     *
+     * @var array
+     */
+    private $data;
+
+    /**
+     * 最大页数
+     *
+     * @var int
+     */
+    private $max;
+
+    /**
+     * 当前页数
+     *
+     * @var int
+     */
+    private $current;
+
+    /**
+     * 下一页
+     *
+     * @var int
+     */
+    private $next;
+
+    /**
+     * 上一页
+     *
+     * @var int
+     */
+    private $prev;
+
+    /**
+     * 分页大小，默认 10
+     *
+     * @var int
+     */
+    private $pageSize;
+
+    /**
+     * 工厂方法，根据 $adapterShortName 获取 adapter,
+     * $adapterClassName, 短类名或者长类名：
+     * 1. 短类名形如 medoo、pdo, 工厂会匹配:
+     *   \hymie\pager\adapter\MedooPagerAdapter
+     *   \hymie\pager\adapter\PdoPagerAdapter
+     *
+     * 2. 长类名需要包含命名空间。
+     *
+     *
+     * @param string $name
+     * @param array $params
+     * @return void
+     */
+    public static function getPager($adapterObjOrClassName, ...$params)
+    {
+        if (is_string($adapterObjOrClassName)) {
+            Assert::classExists($adapterObjOrClassName,
+                sprintf("%s: '%s' is not valid adapter class name, does not exist.", 
+                        self::class, $adapterObjOrClassName)
+            );
+            $className = $adapterObjOrClassName;
+        } elseif (is_object($adapterObjOrClassName)) {
+            if ($adapterObjOrClassName instanceof \PDO) {
+                $className = "\\hymie\\pager\\adapter\\PdoPagerAdapter";
+            } elseif ($adapterObjOrClassName instanceof \Medoo\Medoo) {
+                $className = "\\hymie\\pager\\adapter\\MedooPagerAdapter";
+            } else {
+                throw new \InvalidArgumentException(
+                    sprintf("%s: '%s' is not valid adapter instance, need instance of \PDO or \Medoo\Medoo.", 
+                            self::class, get_class($adapterObjOrClassName))
+                );
+            }
+            $params = array_merge([$adapterObjOrClassName], $params);
+        } else {
+            throw new \InvalidArgumentException(
+                sprintf("%s: need adapter classname or instance, '%s' given!", 
+                        self::class, get_type($adapterObjOrClassName))
+            );
+        }
+
+        $adapter = get_bean($className, $params);
+
+        Assert::notNull($adapter,
+            sprintf("%s: '%s' is not valid adapter classname or instance, class '%s' not exist.", 
+                        self::class, $className, get_class($adapter))
+        );
+        Assert::isInstanceOf(
+            $adapter,
+            "\\hymie\\pager\\adapter\\PagerAdapterInterface",
+            sprintf(
+                "%s: '%s' must a instance(subclass) of \\hymie\\pager\\adapter\\PagerAdapterInterface, '%s' given.",
+                self::class,
+                $className,
+                get_class($adapter)
+            )
+        );
+
+        return new Pager($adapter);
+    }
+
+    /**
+     * 构造函数
+     *
+     * 检查配置文件、初始化参数 key，初始化方法、计算分页数据
+     *
+     */
+    public function __construct($adapter)
+    {
+        $this->adapter = $adapter;
+
+        $config = get_config('pagination');
+
+        $this->checkConfig($config);
+    }
+
+    public function doPage($page = null, $pageSize = null)
+    {
+        $this->initKeyParam($page, $pageSize);
+        $this->calculate();
+
+        $_REQUEST['_pager'] = $this;
+    }
+
+    /**
+     * 检查分页配置数据，配置数据配置在项目主目录 config.php 文件中。
+     *
+     * $config[\'pagination\'][\'page_key\'] = \'p\'
+     * $config[\'pagination\'][\'size_key\'] = \'s\'
+     *
+     * @param [type] $config
+     * @return void
+     */
+    private function checkConfig(&$config)
+    {
+        if (!isset($config['page_key'])) {
+            log_info("'config.php' does not contain 'page_key' config, use default value 'p', this setting can configured in config.php like: \$config['pagination']['page_key'] = '[key-name]'; ");
+            $this->pageKey = self::DEFAULT_PAGE_KEY;
+        } else {
+            $this->pageKey = $config['page_key'];
+        }
+
+        if (!isset($config['size_key'])) {
+            log_info("'config.php' does not contain 'size_key' config, use default value 's', this setting can configured in config.php like: \$config['pagination']['size_key'] = '[key-name]'; ");
+            $this->pageSizeKey = self::DEFAULT_PAGE_SIZE_KEY;
+        } else {
+            $this->pageSizeKey = $config['size_key'];
+        }
+
+        if ($this->pageKey === $this->pageSizeKey) {
+            log_info('$config[\'pagination\'][\'size_key\'] and $config[\'pagination\'][\'page_key\'] muse not be same, use default.');
+            $this->pageKey = self::DEFAULT_PAGE_KEY;
+            $this->pageSizeKey = self::DEFAULT_PAGE_SIZE_KEY;
+        }
+    }
+
+    /**
+     * 获取传参的 page_key 和 size_key 对应的值，并进行类型检查。
+     *
+     * 如果类型检查不通过或者值不存在，那么：
+     *  $this->current 默认为 1
+     *  $this->pageSize 默认为 10
+     *
+     * @param array $config
+     * @return void
+     */
+    private function initKeyParam($page, $pageSize)
+    {
+        $request = \hymie\Request::getInstance();
+        // 如果未传参，则从全局变量中获取
+        if ($page == null) {
+            $current = $request->request($this->pageKey);
+            $this->current = ($current == null) ? 1 : $current;
+        } else {
+            $this->current = $page;
+        }
+        //如果类型不对
+        if (preg_match("/^[0-9]+\Z$/i", $this->current) === 0) {
+            $this->current = 1;
+        }
+        log_debug(sprintf("%s: Current page position is '%s", self::class, $this->current));
+
+        // 如果未传参，则从全局变量中获取
+        if ($pageSize == null) {
+            $pageSize = $request->request($this->pageSizeKey);
+            $this->pageSize = ($pageSize == null) ? self::DEFAULT_PAGE_SIZE : $pageSize;
+        } else {
+            $this->pageSize = $pageSize;
+        }
+        //如果类型不对
+        if (preg_match("/^[0-9]+\Z$/i", $this->pageSize) === 0) {
+            $this->pageSize = self::DEFAULT_PAGE_SIZE;
+        }
+        log_debug(sprintf("%s: Current page size is '%s", self::class, $this->pageSize));
+    }
+
+    /**
+     * 计算分页病获取分页后数据
+     *
+     * @return void
+     */
+    public function calculate()
+    {
+        $this->dataCount = $this->adapter->getDataCount();
+
+        $max = ceil($this->dataCount / $this->pageSize);
+        $this->max = ($max == 0) ? 1 : $max;
+        $this->current = ($this->current > $this->max) ? $this->max : $this->current;
+        $this->next = ($this->current >= $this->max) ? $this->max : $this->current + 1;
+        $this->prev = ($this->current <= 1) ? 1 : $this->current - 1;
+
+        $this->data = $this->adapter->getData($this->current - 1, $this->pageSize);
+    }
+
+    /**
+     * 获取当前页，前 n 页，以及 后 n 页。
+     *
+     * @param int $leftAndRight 前后各取多少页
+     */
+    public function getRange($leftAndRight = 3)
+    {
+        if ($leftAndRight < 1) {
+            return [$this->prev, $this->current, $this->next];
+        }
+
+        $result = [];
+        $result = array_merge($result, $this->prev($leftAndRight));
+        array_push($result, $this->current);
+        $result = array_merge($result, $this->next($leftAndRight));
+
+        return $result;
+    }
+
+    public function getData()
+    {
+        return $this->data;
+    }
+
+    public function getCount()
+    {
+        return $this->dataCount;
+    }
+
+    public function getMax()
+    {
+        return $this->max;
+    }
+
+    public function getCurrent()
+    {
+        return $this->current;
+    }
+
+    public function getRangeArray($leftAndRight = 3)
+    {
+        $result = $this->getPrevArray($leftAndRight);
+        $result[] = $this->genPageQueryStringArray($this->current);
+        $result = array_merge($result, $this->getNextArray($leftAndRight));
+
+        return $result;
+    }
+
+    public function getNext()
+    {
+        return $this->next;
+    }
+
+    public function getNextArray($n = 3)
+    {
+        if ($n <= 1) {
+            return [$this->genPageQueryStringArray($this->next)];
+        }
+
+        $result = array();
+        for ($i = 0; $i < $n; $i++) {
+            $next = $this->next + $i;
+            if ($next <= $this->max) {
+                array_push($result, $this->genPageQueryStringArray($next));
+            }
+        }
+
+        return $result;
+    }
+
+    public function getPrev()
+    {
+        return $this->prev;
+    }
+
+    public function getPrevArray($n = 3)
+    {
+        if ($n <= 1) {
+            return [$this->genPageQueryStringArray($this->prev)];
+        }
+
+        $result = array();
+        for ($i = 0; $i < $n; $i++) {
+            $prev = $this->prev - $i;
+            if ($prev >= 0) {
+                array_push($result, $this->genPageQueryStringArray($prev));
+            }
+        }
+
+        return array_reverse($result);
+    }
+
+    private function genPageQueryStringArray($pageNumber)
+    {
+        $result = array();
+        $result['page'] = $pageNumber;
+
+        $queryString = $this->pageKey . '=' . $pageNumber;
+
+        if ($this->pageSize != self::DEFAULT_PAGE_SIZE) {
+            $queryString = $queryString . '&' . $this->pageSizeKey . '=' . $this->pageSize;
+        }
+
+        $result['query_string'] = $queryString;
+
+        return $result;
+    }
+
+    public function getPageSize()
+    {
+        return $this->pageSize;
+    }
+
+    public function getAdapter()
+    {
+        return $this->adapter;
+    }
+
+    public function setAdapter($value)
+    {
+        $this->adapter = $value;
+    }
+}
+

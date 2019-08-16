@@ -1,0 +1,37 @@
+<?PHP
+/**
+ * Project:       Hymie PHP MVC framework
+ * File:          PagerAdapterInterface.php
+ * Created Date:  2019-08-11
+ * 
+ * Github:        https://github.com/mahaixing/hymie-mvc
+ * Gitee:         https://gitee.com/mahaixing/hymie-mvc
+ * Composer:      https://packagist.org/packages/hymie/mvc
+ * 
+ * @author:       mahaixing(mahaixing@gmail.com)
+ * @license:      Apache License 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+ */
+
+namespace hymie\pager\adapter;
+
+/**
+ * 分页适配器接口
+ */
+interface PagerAdapterInterface
+{
+    /**
+     * 获取数据总条数
+     *
+     * @return void
+     */
+    public function getDataCount();
+
+    /**
+     * 按照分页获取数据列表
+     *
+     * @param int $page
+     * @param int $pageSize
+     * @return array
+     */
+    public function getData($page, $pageSize);
+}

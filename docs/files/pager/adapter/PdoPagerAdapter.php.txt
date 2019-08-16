@@ -1,0 +1,114 @@
+<?PHP
+/**
+ * Project:       Hymie PHP MVC framework
+ * File:          PdoPagerAdapter.php
+ * Created Date:  2019-08-11
+ * 
+ * Github:        https://github.com/mahaixing/hymie-mvc
+ * Gitee:         https://gitee.com/mahaixing/hymie-mvc
+ * Composer:      https://packagist.org/packages/hymie/mvc
+ * 
+ * @author:       mahaixing(mahaixing@gmail.com)
+ * @license:      Apache License 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+ */
+
+namespace hymie\pager\adapter;
+
+use Webmozart\Assert\Assert;
+use hymie\pager\PagerException;
+
+/**
+ * PDO 分页适配器
+ */
+class PdoPagerAdapter implements PagerAdapterInterface
+{
+    private $pdo;
+    private $sql;
+    private $params;
+    private $fetchArgument;
+    private $options;
+    private $dialect;
+
+    /**
+     * 构造函数
+     * 
+     * 1. $fetchArgument 为键值对数组，比如：
+     *  [PDO::FETCH_COLUMN, 0] 检索结果集第一列所有值
+     *  [PDO::FETCH_COLUMN|PDO::FETCH_GROUP] 根据第一列分组
+     *  [PDO::FETCH_CLASS, "Fruit"] 数据每行实例化为类 Fruit 的实例
+     *  参考：https://www.php.net/manual/zh/pdostatement.fetchall.php
+     * 
+     * 2. $options 数据驱动属性
+     *  常见用法是：设置 PDO::ATTR_CURSOR 为 PDO::CURSOR_SCROLL，将得到可滚动的光标。 
+     * 某些驱动有驱动级的选项，在 prepare 时就设置。
+     *  参考：https://www.php.net/manual/zh/pdo.prepare.php
+     * 
+     * 
+     *
+     * @param \PDO $pdo PDO 实例
+     * @param string $sql 待分页的 sql
+     * @param array|null $params sql参数数组
+     * @param array|null $fetchArgument 检索参数
+     * @param array|null $options 数据库驱动参数
+     */
+    public function __construct($pdo, $sql, $params = null, $fetchArgument = null, $options = null)
+    {
+        Assert::notNull($pdo, sprintf("Need a \PDO instance, '%s' given.", 
+                                    is_object($pdo) ? get_class($pdo) : gettype($pdo)));
+        Assert::isInstanceOf($pdo, '\PDO', sprintf("%s: Need a \PDO instance, '%s' given.", 
+                                                __CLASS__, is_object($pdo) ? get_class($pdo) : gettype($pdo)));
+
+        $this->pdo = $pdo;
+        $this->pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+        $this->sql = $sql;
+        $this->params = is_string($params) ? [$params] : $params;
+        $this->fetchArgument = $fetchArgument;
+        $this->options = $options;
+
+        $driverName = $this->pdo->getAttribute(\PDO::ATTR_DRIVER_NAME);
+        $this->dialect = \hymie\pager\adapter\dialect\AbstractPdoDialect::getDialect($driverName);
+    }
+
+    private function exec($sql, $useFetchArgument = true)
+    {
+        try {
+            $statement = ($this->options != null) ? 
+                            $this->pdo->prepare($sql, $this->options) :
+                            $this->pdo->prepare($sql);
+
+            if ($this->params != null && is_array($this->params)) {
+                $statement->execute($this->params);
+            } else {
+                $statement->execute();
+            }
+
+            $result = null;
+            if ($useFetchArgument == true && 
+                $this->fetchArgument != null && 
+                is_array($this->fetchArgument)
+            ) {
+                $result = \call_user_func_array(array($statement, 'fetchAll'), $this->fetchArgument);
+            } else {
+                $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            }
+
+            return $result;
+        } catch (\PDOException $e) {
+            throw new PagerException($e->getMessage(), $e);
+        }
+    }
+
+    public function getData($page, $pageSize)
+    {
+        $sql = $this->dialect->getDataSql($this->sql, $page, $pageSize);
+        return $this->exec($sql);
+    }
+
+    public function getDataCount()
+    {
+        $sql = $this->dialect->getDataCountSql($this->sql);
+        $result = $this->exec($sql, false);
+
+        return $result[0]['cnt'];
+    }
+}

@@ -1,0 +1,195 @@
+<?PHP
+
+/**
+ * Project:       Hymie PHP MVC framework
+ * File:          Result.php
+ * Created Date:  2019-08-11
+ * 
+ * Github:        https://github.com/mahaixing/hymie-mvc
+ * Gitee:         https://gitee.com/mahaixing/hymie-mvc
+ * Composer:      https://packagist.org/packages/hymie/mvc
+ * 
+ * @author:       mahaixing(mahaixing@gmail.com)
+ * @license:      Apache License 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+ */
+
+namespace hymie;
+
+/**
+ * 返回值
+ */
+class Result
+{
+    /**
+     * 成功
+     */
+    const SUCCESS = 0;
+
+    /**
+     * 失败
+     */
+    const FAIL = 1;
+
+    /**
+     * 错误
+     */
+    const ERROR = -1;
+
+    /**
+     * 返回的视图
+     *
+     * @var \hymie\view\View
+     */
+    private $view;
+
+    /**
+     * 返回的数据
+     *
+     * @var array
+     */
+    private $model;
+
+    /**
+     * 返回状态
+     *
+     * @var int
+     */
+    private $status;
+
+    /**
+     * 附加消息，一般出错时会用到
+     *
+     * @var string
+     */
+    private $message;
+
+    /**
+     * 构造函数
+     */
+    public function __construct()
+    {
+        $this->model = array();
+        $this->message = '';
+    }
+
+    /**
+     * 向模型中添加数据
+     *
+     * @param string $k 键名，在视图中作为变量名
+     * @param mixed $v 值
+     * @return void
+     */
+    public function add($k, $v)
+    {
+        $this->model[$k] = $v;
+        return $this;
+    }
+
+    /**
+     * 向模型中添加数组，会与现有模型数组合并
+     *
+     * @param array $model 键值对数组
+     * @return void
+     */
+    public function addArray($model)
+    {
+        if (!is_null($model) && is_array($model)) {
+            $this->model = array_merge($this->model, $model);
+        }
+        return $this;
+    }
+
+    /**
+     * 返回成功
+     *
+     * 数据需要是关联数组，方便视图读取
+     *
+     * @param array $data 数据
+     * @return void
+     */
+    public function success($data = null)
+    {
+        if (!is_null($data) && is_array($data)) {
+            $this->model = array_merge($this->model, $data);
+        }
+        $this->status = self::SUCCESS;
+        return $this;
+    }
+
+    /**
+     * 失败
+     *
+     * 数据需要是关联数组，方便视图读取
+     * @param string $message
+     * @param array $data
+     * @return void
+     */
+    public function fail($message = null, $data = null)
+    {
+        if (!is_null($data) && is_array($data)) {
+            $this->model = array_merge($this->model, $data);
+        }
+
+        if (!is_null($message)) {
+            $this->message = $message;
+        }
+
+        $this->status = self::FAIL;
+        return $this;
+    }
+
+    /**
+     * 错误
+     *
+     * 数据需要是关联数组，方便视图读取
+     *
+     * @param string $message
+     * @param mixed $data
+     * @return void
+     */
+    public function error($message = null, $data = null)
+    {
+        if (!is_null($data) && is_array($data)) {
+            $this->model = array_merge($this->model, $data);
+        }
+
+        if (!is_null($message)) {
+            $this->message = $message;
+        }
+        $this->status = self::ERROR;
+        return $this;
+    }
+
+    public function setView($view)
+    {
+        $this->view = $view;
+        return $this;
+    }
+
+    public function message($message)
+    {
+        $this->message = $message;
+        return $this;
+    }
+
+    public function getView()
+    {
+        return $this->view;
+    }
+
+    public function getModel()
+    {
+        return $this->model;
+    }
+
+    public function getStatus()
+    {
+        return $this->status;
+    }
+
+    public function getMessage()
+    {
+        return $this->message;
+    }
+}
+

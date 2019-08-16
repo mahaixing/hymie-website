@@ -1,0 +1,453 @@
+<?php
+/**
+ * Project:       Hymie PHP MVC framework
+ * File:          FileUpload.php
+ * Created Date:  2019-08-11
+ * 
+ * Github:        https://github.com/mahaixing/hymie-mvc
+ * Gitee:         https://gitee.com/mahaixing/hymie-mvc
+ * Composer:      https://packagist.org/packages/hymie/mvc
+ * 
+ * @author:       mahaixing(mahaixing@gmail.com)
+ * @license:      Apache License 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+ */
+
+namespace hymie\upload;
+
+use hymie\exception\hymieException;
+
+$msg = array();
+$msg['msg']['err_ini_size'] = '超出文件上传限制';
+$msg['msg']['err_form_size'] = '超出文件上传限制';
+$msg['msg']['err_partial'] = '部分上传成功';
+$msg['msg']['err_no_file'] = '无上传文件';
+$msg['msg']['err_no_tmp_dir'] = '无法写入上传文件';
+$msg['msg']['err_cant_write'] = '无法写入上传文件';
+$msg['msg']['err_extension'] = '不支持的文件类型';
+$msg['msg']['err_filename'] = '文件名超出限制';
+$msg['msg']['err_move'] = '文件非上传文件';
+
+/**
+ * 文件上传类，支持多文件上传
+ * 
+ * 可选配置参数为：
+ * 
+ * 	sub_path: 		相对上传目录的子目录，默认 /
+ *  allowed_types: 	支持的文件类型，会与全局配置合并，若未配置则使用全局配置。'*' 代表支持全部文件类型。
+ * 
+ * $conf = array('sub_path' => '/a/b/c', 'allowed_types' => 'jpg|png');
+ * $upload = new \hymie\fileupload\FileUpload($conf);
+ * 
+ * // $result 是一个数组，包含每个文件上传的结果。
+ * $result = $upload->doUpload('file_attribute');
+ * 
+ * foreach ($result as $k=>$v) {
+ *  // $k 是原始文件名，如果有重名则会在文件名前加序号，如： 1_filename.ext 。
+ * 	if ($v['result'] == true) {
+ * 		//do someing;
+ * 	} else {
+ * 		//do someing;
+ *  }
+ * } 
+ * 
+ * 如果上传成功，$result 元素子数组包含：
+ * 
+ * 	1. result: 			上传结果 boolean
+ * 	2. origFilename: 	原始文件名
+ *  3. filemame: 		新文件名
+ *  4. fileSize:		文件大小 kb
+ *  5. path:			文件相对上传主目录的路径
+ * 
+ * 如果失败则：
+ * 
+ * 	1. result:			上传结果 boolean
+ *  2. msg:				错误信息
+ */
+class FileUpload extends Upload
+{
+
+	/**
+	 * 支持的文件类型
+	 *
+	 * @var array
+	 */
+	private $allowedTypes;
+	
+	/**
+	 * 上传目录，初始为 全局主目录，执行中会赋值为
+	 * 
+	 * $uploadPath = $uploadPath . $subPath
+	 *
+	 * @var string
+	 */
+	private $uploadPath = '';
+
+	/**
+	 * 上传子目录，相对于上传目录
+	 *
+	 * @var string
+	 */
+	private $subPath;
+
+	/**
+	 * 文件名最大长度，超过这个长度的文件名将无法上传
+	 *
+	 * @var integer
+	 */
+	private $maxFilename = 255;
+	
+	/**
+	 * 全局配置，参考 config.php 中 upload 相关配置。
+	 *
+	 * @var array
+	 */
+	private $config;
+
+	/**
+	 * mime 类型数组，放这里是为了避免重复加载
+	 *
+	 * @var array
+	 */
+	private $mimes;
+
+    /**
+     * 构造函数
+     *
+ 	 * 	sub_path: 		相对上传目录的子目录，默认 /
+ 	 *  allowed_types: 	支持的文件类型，会与全局配置合并，若未配置则使用全局配置。'*' 代表支持全部文件类型。
+     *
+     * @param    array    $config
+     * @return    void
+     */
+    public function __construct($conf = array())
+    {
+        $uploadConfig = get_config("upload");
+        $this->config = array_key_exists('file', $uploadConfig) ? $uploadConfig['file'] : [];
+
+        if (!isset($this->config['upload_path'])) {
+            $this->config['upload_path'] = dirname($_SERVER['SCRIPT_FILENAME']) . DIRECTORY_SEPARATOR. 'upload';
+        }
+
+		//初始化上传路径
+		$this->initUploadPath($conf);
+
+		//初始化支持的文件类型，默认是所有文件
+		$allowedTypes = '*';
+		if (isset($this->config['allowed_types'])) {
+			$allowedTypes = $this->config['allowed_types'];
+		}
+		$this->initAllowedTypes($allowedTypes, $conf);
+
+		//设置 php 文件上传限制
+        if (isset($this->config['max_file_size'])) {
+            ini_set('upload_max_filesize', $this->config['max_file_size']);
+            ini_set('post_max_size', $this->config['max_file_size']);
+		}
+    }
+
+	/**
+	 * 初始化上传路径
+	 */
+    private function initUploadPath(& $conf)
+    {
+        $this->uploadPath = $this->config['upload_path'];
+        $this->subPath = (isset($conf['sub_path'])) ? $conf['sub_path'] : '/';
+        $this->uploadPath = $this->validatePath($this->uploadPath . $this->subPath);
+	}
+	
+	/**
+	 * 初始化支持的类型，支持的文件类型会合并全局配置与传入的配置
+	 *
+	 * @param string $globalAllowedTypes 全局配置
+	 * @param array  $conf 构造函数传递的局部配置
+	 * @return void
+	 */
+	private function initAllowedTypes($globalAllowedTypes, $conf) 
+	{
+		//如果没有配置局部，则使用全局
+        if (! isset($conf['allowed_types'])) {
+			$this->allowedTypes = explode('|', $globalAllowedTypes);
+			return ;
+		}
+		
+		$currentAllowedTypes = $conf['allowed_types'];
+		if ($currentAllowedTypes == '*') {
+			$this->allowedTypes = array('*');
+			return;
+		}
+
+		if ($globalAllowedTypes == '*') {
+			$this->allowedTypes = explode('|', $currentAllowedTypes);
+			return;
+		}
+
+		$this->allowedTypes = array_merge(explode('|', $globalAllowedTypes), 
+											explode('|', $currentAllowedTypes));
+	}
+
+    /**
+     * Validate Upload Path
+     *
+     * Verifies that it is a valid upload path with proper permissions.
+     */
+    private function validatePath($path)
+    {
+        if (realpath($path) !== false) {
+            $path = str_replace('\\', '/', realpath($path));
+        }
+
+        if (!is_dir($path)) {
+            if (! mkdir($path, 0755, true)) {
+                log_error("上传路径 " . $path . " 不存在，且无法创建.");
+                throw new hymieException("上传路径 " . $path . " 不存在，且无法创建.");
+            }
+        }
+
+        if (!is_writable($path)) {
+            throw new hymieException("上传路径不可写.");
+        }
+
+        return preg_replace('/(.+?)\/*$/', '\\1/', $path);
+    }
+
+    /**
+     * Perform the file upload
+     *
+     * @param    string    $field
+     * @return    bool
+     */
+    public function doUpload($field = 'userfile')
+    {
+        // $_FILES 中没有对应的属性则不是文件上传。
+        if (!isset($_FILES[$field])) {
+            throw new UploadException("文件上传属性名不正确，无法找到 $field ，请核对 <input type=\"file\" name=\"xxx\"/> 对应的 name 属性!");
+        }
+
+        if (!isset($_FILES[$field]['error'])) {
+            throw new UploadException("文件上传信息错误");
+        }
+
+        $results = [];
+        //是否多文件上传
+        if (is_array($_FILES[$field]['name'])) {
+			//循环上传多文件，并将每个文件的上传结果保存到结果数组中
+            $number = count($_FILES[$field]['name']);
+            for ($i = 0; $i < $number; $i++) {
+                $file = array(
+					'name' => $_FILES[$field]['name'][$i],
+                    'type' => $_FILES[$field]['type'][$i],
+                    'tmp_name' => $_FILES[$field]['tmp_name'][$i],
+                    'error' => $_FILES[$field]['error'][$i],
+                    'size' => $_FILES[$field]['size'][$i],
+				);
+
+				$origName = $_FILES[$field]['name'][$i];
+				if (\array_key_exists($origName, $results)) {
+					$origName = $i . '_' . $origName;
+				}
+                $results[$origName] = $this->uploadInternal($file);
+            }
+        } else {
+			//单文件上传
+            $results[$_FILES[$field]['name']]= $this->uploadInternal($_FILES[$field]);
+		}
+		
+		return $results;
+    }
+
+	/**
+	 * 执行具体上传操作
+	 *
+	 * @param array $file	文件信息数组，结构同单文件上传时的 $_FILES
+	 * @return array 上传的结果
+	 */
+    private function uploadInternal($file)
+    {
+        global $msg;
+        // Was the file able to be uploaded? If not, determine the reason why.
+        if (!is_uploaded_file($file['tmp_name'])) {
+            throw new UploadException("上传错误， " . $file['tmp_name'] . "并非上传的文件！");
+        }
+
+        $error = isset($file['error']) ? $file['error'] : 4;
+		//根据 error 判断上传错误类型
+        switch ($error) {
+            case UPLOAD_ERR_INI_SIZE:
+                return $this->error($msg['err_ini_size']);
+                break;
+            case UPLOAD_ERR_FORM_SIZE:
+                return $this->error($msg['err_form_size']);
+            case UPLOAD_ERR_PARTIAL:
+                return $this->error($msg['err_partial']);
+            case UPLOAD_ERR_NO_FILE:
+                return $this->error($msg['err_no_file']);
+            case UPLOAD_ERR_NO_TMP_DIR:
+                return $this->error($msg['err_no_tmp_dir']);
+            case UPLOAD_ERR_CANT_WRITE:
+                return $this->error($msg['err_cant_write']);
+            case UPLOAD_ERR_EXTENSION:
+                return $this->error($msg['err_extension']);
+            default:
+                break;
+        }
+
+        // 如果上传 ok 则执行上传动作
+        $fileName = $file['name'];
+        $fileTemp = $file['tmp_name'];
+        $fileSize = $file['size'];
+
+        // 如果文件名超过 255 字符，则截断
+        if (strlen($fileName) > $this->maxFilename) {
+            return $this->error($msg['err_filename']);
+        }
+
+		// 获取文件扩展名
+		$fileExt = $this->getExtension($fileName);
+		
+        // 扩展名是否允许上传
+        if (!$this->isAllowedFiletype($fileExt)) {
+            return $this->error($msg['err_extension']);
+		}
+		
+		// 还要根据文件内容，判断文件 mime 类型
+        if (!$this->isAllowedMime($fileTemp, $fileExt)) {
+            return $this->error($msg['err_extension']);
+        }
+        // 转换大小为 KB
+        if ($fileSize > 0) {
+            $fileSize = ceil($fileSize / 1024);
+        }
+
+		// 过滤 xss
+        $xss = new \hymie\security\Xss();
+        $fileName = $xss->cleanXss($fileName);
+
+        // 去掉文件名中的空格
+        $fileName = preg_replace('/\s+/', '_', $fileName);
+
+		// 保存原始文件名
+		$origFileName = $fileName;
+		
+		// 生成新文件名
+        $fileName = sprintf('%s.%s', md5(uniqid(mt_rand())), $fileExt);
+
+		// 移动文件到上传目录
+        if (!@move_uploaded_file($fileTemp, $this->uploadPath . $fileName)) {
+            return $this->error($msg['err_move']);
+        }
+
+		// 返回结果
+        return $this->success($origFileName, $fileName, $fileSize);
+    }
+
+    /**
+     * 上传错误
+     *
+     * @param    string    $msg	错误信息
+     * @return    mixed
+     */
+    private function error($msg)
+    {
+        $result = array(
+            'result' => false,
+            'msg' => $msg,
+        );
+
+        return $result;
+    }
+
+	/**
+	 * 上传成功
+	 *
+	 * @param string $origFilename 原始文件名
+	 * @param string $filename 新文件名
+	 * @param int $fileSize 文件大小
+	 * @return array
+	 */
+    private function success($origFilename, $filename, $fileSize)
+    {
+        $result = array(
+			'result' 		=> true,
+			'origFilename' 	=> $origFilename,
+			'filemame'		=> $filename,
+			'fileSize'		=> $fileSize . 'KB',
+			'path'			=> $this->subPath . $filename
+		);
+        return $result;
+    }
+
+    /**
+     *  检查文件后缀是否允许上传
+     *
+     * @return    bool
+     */
+    private function isAllowedFiletype($ext)
+    {
+        if ($this->allowedTypes[0] === '*') {
+            return true;
+        }
+
+        if (in_array($ext, $this->allowedTypes, true)) {
+            return true;
+        }
+
+        return false;
+    }
+
+	/**
+	 * 检查文件 MIME 是否允许上传，使用 php finfo 库
+	 *
+	 * @param string $tmpFile 临时文件
+	 * @param string $ext 扩展名
+	 * @return boolean
+	 */
+    private function isAllowedMime($tmpFile, $ext)
+    {
+        $finfo = finfo_open(FILEINFO_MIME_TYPE);
+		$fileMime = finfo_file($finfo, $tmpFile);
+		
+		if ($this->mimes == null) {
+			$this->mimes = require_once dirname(__FILE__) . DIRECTORY_SEPARATOR . 'mimes.php';
+		}
+        if (!array_key_exists($ext, $this->mimes)) {
+            log_error("文件后缀 " . $ext . " 不在支持的 MIME 列表中，请在 hymie/upload/mimes.php 文件中添加.");
+            return false;
+        }
+
+        $mime = $this->mimes[$ext];
+        if (is_array($mime)) {
+            foreach ($mime as $k => $v) {
+                if ($v === $fileMime) {
+                    return true;
+                }
+            }
+            log_error('上传文件后缀 ' . $ext . ' 的 MIME 与该文件实际的 MIME 类型不相符。');
+            return false;
+        } elseif ($fileMime === $mime) {
+            return true;
+        } else {
+            log_error('上传文件后缀 ' . $ext . ' 的 MIME 与该文件实际的 MIME 类型不相符。');
+            return false;
+        }
+
+    }
+
+    /**
+     * 获取文件名后缀
+     *
+     * @param    string    $filename
+     * @return    string
+     */
+    public function getExtension($filename)
+    {
+        $x = explode('.', $filename);
+
+        if (count($x) === 1) {
+            return '';
+        }
+
+        return strtolower(end($x));
+    }
+
+}
+

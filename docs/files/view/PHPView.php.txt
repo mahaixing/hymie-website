@@ -1,0 +1,85 @@
+<?PHP
+
+/**
+ * Project:       Hymie PHP MVC framework
+ * File:          PHPView.php
+ * Created Date:  2019-08-11
+ *
+ * Github:        https://github.com/mahaixing/hymie-mvc
+ * Gitee:         https://gitee.com/mahaixing/hymie-mvc
+ * Composer:      https://packagist.org/packages/hymie/mvc
+ *
+ * @author:       mahaixing(mahaixing@gmail.com)
+ * @license:      Apache License 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+ */
+
+namespace hymie\view;
+
+/**
+ * php 视图
+ */
+class PHPView extends View
+{
+
+    /**
+     * php 文件
+     *
+     * @var string
+     */
+    private $file;
+
+    /**
+     * 模块
+     *
+     * @var string
+     */
+    private $module;
+
+    /**
+     * 视图根目录 默认是 app 目录
+     *
+     * @var [type]
+     */
+    private $viewRoot;
+
+    /**
+     * 构造函数
+     *
+     * @param string $module 模块名
+     * @param string $file 文件名 不带 .php 后缀
+     */
+    public function __construct($module, $file)
+    {
+        $this->header();
+        $this->file = str_replace("/", DIRECTORY_SEPARATOR, $file);
+        $this->module = $module;
+
+        $config = \hymie\Config::getInstance();
+        if ($config->exist(['view', 'php_view_root'])) {
+            $this->viewRoot = $config->get('view')['php_view_root'];
+        } else {
+            $this->viewRoot = APP_ROOT;
+        }
+    }
+
+    /**
+     * 渲染视图
+     *
+     * @param \hymie\Result $result 结果
+     * @return void
+     */
+    public function render($result)
+    {
+        $this->file = $this->viewRoot . DIRECTORY_SEPARATOR . $this->module . DIRECTORY_SEPARATOR . 'view' . DIRECTORY_SEPARATOR . $this->file . '.php';
+
+        if (!file_exists($this->file)) {
+            throw new ViewException(sprintf("%s: template file '%s' does not exist!", self::class, $this->file));
+        }
+
+        extract($result->getModel());
+        ob_start();
+        include $this->file;
+        ob_end_flush();
+    }
+}
+

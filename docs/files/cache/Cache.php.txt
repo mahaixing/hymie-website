@@ -1,0 +1,205 @@
+<?PHP
+/**
+ * Project:       Hymie PHP MVC framework
+ * File:          Cache.php
+ * Created Date:  2019-08-11
+ * 
+ * Github:        https://github.com/mahaixing/hymie-mvc
+ * Gitee:         https://gitee.com/mahaixing/hymie-mvc
+ * Composer:      https://packagist.org/packages/hymie/mvc
+ * 
+ * @author:       mahaixing(mahaixing@gmail.com)
+ * @license:      Apache License 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+ */
+
+namespace hymie\cache;
+
+use Psr\Cache\CacheItemPoolInterface;
+use Psr\SimpleCache\CacheInterface;
+
+/**
+ * 缓存，适配 Psr-6 Psr-16。
+ * 默认寻找 bean 配置中名为 'cache' 的 bean 如未配置，则使用 \hymie\cache\ArrayCache (Psr-16)
+ *
+ * 如果存在 ROOT . DIRECTORY_SEPARATOR . '.clean_cache' 文件，则会在启动时清除所有缓存，清除后
+ * 会删除该文件。
+ */
+class Cache implements CacheInterface
+{
+    /**
+     * bean 定义缓存的默认 bean 名字
+     */
+    const DEFAULT_BAEN_NAME = 'cache';
+
+    /**
+     * 默认清除缓存的文件，如果系统根目录下该文件存在则清除缓存。
+     * @todo 这个方式在集群环境下不合适，需要做调整
+     */
+    const CLEAN_FILE = ROOT . DIRECTORY_SEPARATOR . '.clean_cache';
+
+    /**
+     * 第三方缓存实现
+     *
+     * @var CacheInterface|CacheItemPoolInterface
+     */
+    private $cacheImpl;
+
+    /**
+     * 单例
+     */
+    use \hymie\traits\Singleton;
+
+    /**
+     * 读取 bean 配置获取缓存，若未配置，则使用默认的 ArrayCache.
+     */
+    public function __construct()
+    {
+        if (DEBUG == true) {
+            $cacheImpl = new NullCache();
+        } else {
+            $cacheImpl = get_bean(self::DEFAULT_BAEN_NAME);
+        }
+        if ($cacheImpl == null) {
+            log_debug(sprintf("%s: config.php does not define cache bean, use default \\hymie\\cache\\ArrayCache.", self::class));
+            $cacheImpl = new \hymie\cache\ArrayCache;
+        }
+
+        $this->setCacheImpl($cacheImpl);
+        $this->checkIfNeedClean();
+    }
+
+    /**
+     * 检查 ROOT . .clean_cache 文件是否存在，如果存在则清除缓存
+     * 
+     * @todo 这个方式在集群环境下不合适，需要做调整
+     *
+     * @return void
+     */
+    public function checkIfNeedClean()
+    {
+        if (\file_exists(self::CLEAN_FILE)) {
+            $this->clear();
+            unlink(self::CLEAN_FILE);
+        }
+    }
+
+    /**
+     * 设置缓存实现，若 Psr-6缓存，则使用 Psr6Adapter 进行适配，以符合
+     * Psr-16 标准
+     *
+     * @param CacheInterface|CacheItemPoolInterface $cacheImpl
+     * @return void
+     */
+    public function setCacheImpl($cacheImpl)
+    {
+        if ($cacheImpl instanceof CacheItemPoolInterface) {
+            $this->cacheImpl = new Psr6Adapter($cacheImpl);
+        } elseif ($cacheImpl instanceof CacheInterface) {
+            $this->cacheImpl = $cacheImpl;
+        } else {
+            throw new \InvalidArgumentException(sprintf("%s: Cache Implement must Psr-6 or Psr-16 compatible, '%s' given.", self::class, get_type($cacheImpl)));
+        }
+    }
+
+    /**
+     * Symony 缓存实现对键名有要求，不能包含 [ ] { } ( ) \ @ : 这些字符
+     *
+     * @param string $key
+     * @return boolean
+     */
+    private function correctKey($key)
+    {
+        return \preg_replace("/[\{\}\(\)\/\\@:]/i", '#', $key);
+    }
+
+    /**
+     * getter
+     *
+     * @return CacheInterface
+     */
+    public function getCacheImpl()
+    {
+        return $this->cacheImpl;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function get($key, $default = null)
+    {
+        $key = $this->correctKey($key);
+        return $this->cacheImpl->get($key, $default);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function set($key, $value, $ttl = null)
+    {
+        $key = $this->correctKey($key);
+        return $this->cacheImpl->set($key, $value, $ttl);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function delete($key)
+    {
+        $key = $this->correctKey($key);
+        return $this->cacheImpl->delete($key);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function clear()
+    {
+        return $this->cacheImpl->clear();
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getMultiple($keys, $default = null)
+    {
+        $newKeys = [];
+        foreach ($keys as $key) {
+            $newKeys[] = $this->correctKey($key);
+        }
+        return $this->cacheImpl->getMultiple($newKeys, $default);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function setMultiple($values, $ttl = null)
+    {
+        $newValues = [];
+        foreach ($values as $key => $value) {
+            $newValues[$this->correctKey($key)] = $value;
+        }
+        return $this->cacheImpl->setMultiple($newValues, $ttl);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function deleteMultiple($keys)
+    {
+        $newKeys = [];
+        foreach ($keys as $key) {
+            $newKeys[] = $this->correctKey($key);
+        }
+        return $this->cacheImpl->deleteMultiple($newKeys);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function has($key)
+    {
+        $key = $this->correctKey($key);
+        return $this->cacheImpl->has($key);
+    }
+}
+

@@ -1,0 +1,154 @@
+<?PHP
+/**
+ * Project:       Hymie PHP MVC framework
+ * File:          View.php
+ * Created Date:  2019-08-11
+ *
+ * Github:        https://github.com/mahaixing/hymie-mvc
+ * Gitee:         https://gitee.com/mahaixing/hymie-mvc
+ * Composer:      https://packagist.org/packages/hymie/mvc
+ *
+ * @author:       mahaixing(mahaixing@gmail.com)
+ * @license:      Apache License 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+ */
+
+namespace hymie\view;
+
+use Webmozart\Assert\Assert;
+
+/**
+ * 视图抽象类
+ */
+abstract class View
+{
+
+    /**
+     * 默认的 content-type
+     *
+     * @var string
+     */
+    protected $contentType = 'text/html; charset=UTF-8';
+
+    /**
+     * 模型对象
+     *
+     * @var array
+     */
+    private $model;
+
+    /**
+     * 视图主目录，可以在 config.php 中配置
+     *
+     * @var string
+     */
+    private static $viewRoot;
+
+    /**
+     * 渲染视图
+     *
+     * @param \hymie\Result $result
+     * @return void
+     */
+    abstract public function render($result);
+
+     /**
+     * 获取视图的工厂方法
+     *
+     * @param string $module
+     * @param string $result
+     * @return void
+     */
+    public static function getView($module, $result)
+    {
+        Assert::notNull($module, "\hymie\view\View: module name cloud not be null.");
+        Assert::notNull($result, "\hymie\view\View: \hymie\Result instance cloud not be null.");
+
+        /**
+         * 如果是是 ajax 请求
+         */
+        if (\hymie\Request::getInstance()->isAjax()) {
+            return new JsonView($result);
+        }
+
+        $views = [
+            'php' => '\hymie\view\PHPView',
+            'twig' => '\hymie\view\TwigView',
+            'json' => '\hymie\view\JsonView'
+        ];
+        
+        $config = \hymie\Config::getInstance();
+
+        if ($config->exist(['view', 'default'])) {
+            $defaultView = $views[$config->get('view')['default']];
+        } else {
+            $defaultView = 'php';
+        }
+        
+        $implements = [];
+        if ($config->exist(['view', 'implements'])) {
+            $implements = $config->get('view')['implements'];
+        }
+
+        $views = array_merge($views, $implements);
+
+        $viewNameArray = explode(":", $result->getView());
+
+        if (count($viewNameArray) == 1) {
+            return new $defaultView($module, $viewNameArray[0]);
+        }
+
+        foreach ($views as $name => $calzz) {
+            if ($viewNameArray[0] == $name) {
+                return new $calzz($module, $viewNameArray[1]);
+            }
+        }
+
+        return new $defaultView($module, $viewNameArray[1]);
+    }
+
+    /**
+     * Get the value of contentType
+     */
+    public function getContentType()
+    {
+        return $this->contentType;
+    }
+
+    /**
+     * Set the value of contentType
+     *
+     * @return  self
+     */
+    public function setContentType($contentType)
+    {
+        $this->contentType = $contentType;
+        return $this;
+    }
+
+    /**
+     * Get the value of model
+     */
+    public function getModel()
+    {
+        return $this->model;
+    }
+
+    /**
+     * Set the value of model
+     *
+     * @return  self
+     */
+    public function setModel($model)
+    {
+        $this->model = $model;
+        return $this;
+    }
+
+    protected function header()
+    {
+        if (!headers_sent()) {
+            header("Content-Type: " . $this->getContentType());
+        }
+    }
+}
+

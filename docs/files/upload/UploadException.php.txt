@@ -1,0 +1,24 @@
+<?PHP
+/**
+ * Project:       Hymie PHP MVC framework
+ * File:          UploadException.php
+ * Created Date:  2019-08-11
+ * 
+ * Github:        https://github.com/mahaixing/hymie-mvc
+ * Gitee:         https://gitee.com/mahaixing/hymie-mvc
+ * Composer:      https://packagist.org/packages/hymie/mvc
+ * 
+ * @author:       mahaixing(mahaixing@gmail.com)
+ * @license:      Apache License 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+ */
+
+namespace hymie\upload;
+
+class UploadException extends \hymie\exception\hymieException 
+{
+
+    public function __construct($msg, $code = 0, $previous = null)
+    {
+        parent::__construct($msg, $code, $previous);
+    }
+}

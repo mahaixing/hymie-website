@@ -1,0 +1,100 @@
+<?PHP
+
+/**
+ * Project:       Hymie PHP MVC framework
+ * File:          TwigView.php
+ * Created Date:  2019-08-11
+ *
+ * Github:        https://github.com/mahaixing/hymie-mvc
+ * Gitee:         https://gitee.com/mahaixing/hymie-mvc
+ * Composer:      https://packagist.org/packages/hymie/mvc
+ *
+ * @author:       mahaixing(mahaixing@gmail.com)
+ * @license:      Apache License 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+ */
+
+namespace hymie\view;
+
+/**
+ * twig 视图
+ */
+class TwigView extends View
+{
+    /**
+     * 视图文件
+     *
+     * @var string
+     */
+    private $file;
+
+    /**
+     * twig 实例
+     *
+     * @var \Twig\Environment
+     */
+    private $twig;
+
+    /**
+     * 模块名
+     *
+     * @var string
+     */
+    private $module;
+
+    /**
+     * 默认 bean 名
+     */
+    const BEAN_NAME = 'twig';
+
+    /**
+     * 向 twig 中注册 context_path U _U 函数
+     *
+     * @return void
+     */
+    private function addTwigFunctions()
+    {
+        $this->twig->addFunction(new \Twig\TwigFunction("context_path", '\context_path'));
+        $this->twig->addFunction(new \Twig\TwigFunction("U", '\U'));
+        $this->twig->addFunction(new \Twig\TwigFunction("_U", '\_U'));
+    }
+
+    /**
+     * 构造函数
+     *
+     * @param string $module 模块名
+     * @param string $file 模板文件名，不带后缀，默认后缀是 .html
+     */
+    public function __construct($module, $file)
+    {
+        $this->header();
+        $this->twig = get_bean(self::BEAN_NAME);
+        if ($this->twig == null) {
+            throw new ViewException(sprintf("%s: could initialize twig instance, please check your bean config.", self::class));
+        }
+
+        $this->addTwigFunctions();
+
+        $file = str_replace("/", DIRECTORY_SEPARATOR, $file);
+        $this->file = stripos($file, '.') === false ? $file . '.html' : $file;
+
+        $this->module = $module;
+    }
+
+    /**
+     * 渲染视图
+     *
+     * @param \hymie\Result $result 结果对象
+     * @return void
+     */
+    public function render($result)
+    {
+        try {
+            $template = $this->twig->load($this->module . DIRECTORY_SEPARATOR . 'view' . DIRECTORY_SEPARATOR . $this->file);
+            echo $template->render($result->getModel());
+        } catch (\Twig\Error\Error $e) {
+            log_error(sprintf("%s: %s", self::class, $e->getMessage()));
+            throw new ViewException($e->getMessage());
+        }
+    }
+}
+

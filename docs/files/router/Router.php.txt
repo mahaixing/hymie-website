@@ -1,0 +1,185 @@
+<?PHP
+
+/**
+ * Project:       Hymie PHP MVC framework
+ * File:          Router.php
+ * Created Date:  2019-08-11
+ *
+ * Github:        https://github.com/mahaixing/hymie-mvc
+ * Gitee:         https://gitee.com/mahaixing/hymie-mvc
+ * Composer:      https://packagist.org/packages/hymie/mvc
+ *
+ * @author:       mahaixing(mahaixing@gmail.com)
+ * @license:      Apache License 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+ */
+
+namespace hymie\router;
+
+/**
+ * 路由处理类，根据 router.php 内配置的 $routers 数组定义的
+ * 路由与控制器对应关系，查找控制器对象。
+ *
+ * 路由配置文件 route.php 定义在每个模块的根目录下面。
+ *
+ * 路由定义可以使用分组，分组的数据会作为参数按照分组顺序传递给控制器对应方法入参，
+ */
+class Router
+{
+    /**
+     * 默认函数
+     */
+    const DEFAULT_METHOD = 'index';
+
+    /**
+     * 路由信息
+     *
+     * @var \hymie\router\ControllerInfoHolder
+     */
+    private $infoHolder;
+
+    /**
+     * 构造函数
+     *
+     * @param array $modules 模块名
+     */
+    public function __construct($modules)
+    {
+        $this->infoHolder = new ControllerInfoHolder($modules);
+    }
+
+    /**
+     * 如果 url pathvariable 或者 $_REQUEST 中没有对应的参数，则获取参数默认值，若没有默认值，则设为null
+     *
+     * @param \ReflectionParameter $param
+     * @return void
+     */
+    private function getParameterDefaultValue($param)
+    {
+        if ($param->isDefaultValueAvailable()) {
+            return $param->getDefaultValue();
+        } else {
+            log_warning(
+                sprintf(
+                    "%s: parameter '%s' in '%s' method '%s' does not have default value, set it null.",
+                    self::class,
+                    $param->getName(),
+                    $param->getDeclaringClass()->getName(),
+                    $param->getDeclaringFunction()->getName()
+                )
+            );
+            return null;
+        }
+    }
+
+    /**
+     * 根据路由定义查找控制器，并实例化控制器方法的 Reflection 对象
+     *
+     * @param string $module 模块名
+     * @param string $controllerName 控制器名
+     * @param string $method 方法名
+     * @param array $matches 匹配的参数
+     * @return array
+     */
+    private function getControllerMethodAndParams($module, $controllerName, $method, $matches)
+    {
+        $request = \hymie\Request::getInstance();
+        $config = \hymie\Config::getInstance()->get('controller');
+
+        $controller = get_bean($controllerName, null, true);
+        if ($controller == null) {
+            throw new RouterDefinitionException(sprintf("%s: controller class '%s' does not exist.", self::class, $controllerName));
+        }
+
+        $reflectMethod = new \ReflectionMethod($controller, $method);
+        //如果没有匹配到则返回
+        if (count($matches) == 0) {
+            return array('module' => $module, 'controller' => $controller, 'method' => $reflectMethod, 'params' => []);
+        }
+
+        $params = $reflectMethod->getParameters();
+        $paramsArray = array();
+
+        // 循环匹配到的url变量，将变量按顺序给控制器方法
+        foreach ($matches as $match) {
+            $param = array_shift($params);
+            if (trim($match == '')) {
+                $match = $this->getParameterDefaultValue($param);
+            }
+            $paramsArray[$param->getName()] = $match;
+        }
+
+        // 如果URL变量用完，但控制器方法参数还有，则在 $_GET $_POST 中寻找同名
+        // 的请求参数，如果有则赋值，否则查看是否有默认值，如果有则赋默认值，否则
+        // 赋 null 值
+        if (count($params) > 0) {
+            foreach ($params as $param) {
+                $paramName = $param->getName();
+                if ($request->has($paramName)) {
+                    $paramValue = ($config['xss'] == true) ?
+                        $request->request($paramName, true) : $request->request($paramName);
+                    if (trim($paramValue) == '') {
+                        $paramValue = $this->getParameterDefaultValue($param);
+                    }
+                } else {
+                    $paramValue = $this->getParameterDefaultValue($param);
+                }
+
+                $paramsArray[$paramName] = $paramValue;
+            }
+        }
+        //返回
+        return array('module' => $module, 'controller' => $controller, 'method' => $reflectMethod, 'params' => $paramsArray);
+    }
+
+    /**
+     * 处理控制器配置，获得控制器名称、方法名
+     *
+     * @param string|array $controllerDef
+     * @return array
+     */
+    private function processController($controllerDef)
+    {
+        $result = null;
+        if (is_string($controllerDef)) {
+            $result = explode(":", $controllerDef);
+        } elseif (is_array($controllerDef)) {
+            $result = $controllerDef;
+        } else {
+            throw new RouterDefinitionException(sprintf("controller definition error, need string or array, '%s' given", get_type($controllerDef)));
+        }
+
+        if (count($result) == 1) {
+            log_info(sprintf("%s: no controller method specified use default method name 'index'", self::class));
+            $result[] = self::DEFAULT_METHOD;
+        }
+
+        return $result;
+    }
+
+    /**
+     * 根据路由配置获取控制器，控制器方法的 Reflection 实例。
+     *
+     * 如果找不到控制器则返回 404 页面
+     *
+     * @return array
+     */
+    public function getController()
+    {
+        $path = \hymie\Request::getInstance()->path();
+        $controllerInfo = $this->infoHolder->getControllerInfo($path);
+
+        //如果匹配到 controller
+        if ($controllerInfo != null) {
+            // 匹配到的参数，可能为空数组
+            $matches = $controllerInfo[0];
+            // 模块名
+            $module = $controllerInfo[1]['module'];
+            // 获取控制器信息
+            $controller = $this->processController($controllerInfo[1]['controllerDef']);
+            return $this->getControllerMethodAndParams($module, $controller[0], $controller[1], $matches);
+        }
+
+        throw new RouterException(sprintf("%s: page '%s' not found.", self::class, $path));
+    }
+}
+

@@ -1,0 +1,465 @@
+<?PHP
+
+/**
+ * Project:       Hymie PHP MVC framework
+ * File:          function.php
+ * Created Date:  2019-08-11
+ * 
+ * Github:        https://github.com/mahaixing/hymie-mvc
+ * Gitee:         https://gitee.com/mahaixing/hymie-mvc
+ * Composer:      https://packagist.org/packages/hymie/mvc
+ * 
+ * @author:       mahaixing(mahaixing@gmail.com)
+ * @license:      Apache License 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+ */
+
+use Webmozart\Assert\Assert;
+
+if (!function_exists('R')) {
+
+    /**
+     * 跳转地址
+     *
+     * @param string $to     要跳转的路径
+     */
+    function R($to)
+    {
+        if (!headers_sent()) {
+            header('Location: ' . _U($to));
+        } else {
+            $str = "<meta http-equiv='Refresh' content='0; URL=" . _U($to) . "'>";
+            exit($str);
+        }
+    }
+}
+
+if (!function_exists('_U') and !function_exists('U')) {
+
+    /**
+     * 生成url, path 是跳转的 route 。
+     *
+     * param 是额外的 querystring，可以是关联数组，也可以是字符串
+     *
+     * 1. 关联数组
+     *  ['a'=>1, 'b'=>2] 会生成 a=1&b=2
+     *
+     * 2. 字符串会原样附加在 url 后面，字符串的第一个字符不用是 '&'
+     *  a=1&b=2&c=3
+     *
+     * 因为可以配置多个入口文件，比如 index.php 用于网站，user.php 用于用户主目录，admin.php 用于后台管理
+     * 这些入口文件针对不同上下文，因此有需要跳转其他上下文的需求。
+     *
+     * 可以传递 $context 指定上下文，并且配合 $script_name 指定上下文入口文件，来进行跳转。
+     *
+     * @param string        $path           跳转的 url，如果以 http 或者 https 开头，则视为绝对地址。
+     * @param array/string  $params         额外的 query_string 参数
+     * @param string        $script_name    其他上下文的入口文件，默认当前 php 文件名
+     * @return string 生成的 URL 地址
+     */
+    function _U($path, $params = null, $script_name = '')
+    {
+        $url = new \hymie\Url($path, $params, $script_name);
+        return $url->getUrl();
+    }
+
+    /**
+     * 直接输出生成的 URL 地址，一般用于页面生成 URL。
+     *
+     * 参数同 _R 函数
+     *
+     * @param string        $path           跳转的 url，如果以 http 或者 https 开头，则视为绝对地址。
+     * @param array/string  $params         额外的 query_string 参数
+     * @param string        $script_name    其他上下文的入口文件，默认当前 php 文件名
+     * @return string 生成的 URL 地址
+     */
+    function U($path, $params = null, $script_name = '')
+    {
+        echo _U($path, $params, $script_name);
+    }
+}
+
+if (!function_exists('result')) {
+
+    /**
+     * 构造 \hymie\Result 的帮助函数
+     */
+    function result()
+    {
+        return new \hymie\Result();
+    }
+}
+
+if (!function_exists('get_type')) {
+    /**
+     * 获取类型
+     *
+     * @param mixed $target
+     * @return string
+     */
+    function get_type($target)
+    {
+        return is_object($target) ? \get_class($target) : \gettype($target);
+    }
+}
+
+if (!function_exists('context_path')) {
+    /**
+     * 当前入口脚本文件的路径（不包含文件名）以及域名。
+     *
+     * @return void
+     */
+    function context_path()
+    {
+        $path = pathinfo($_SERVER['SCRIPT_NAME'], PATHINFO_DIRNAME);
+        return ($path === '/') ? '' : $path;
+    }
+}
+
+if (!function_exists('get_bean')) {
+    /**
+     * 获取 bean 的帮助方法，此方法获取的是单例实例
+     *
+     * @param string $name bean 名或类名
+     * @param array|null $params 如果 $name 是类名，则为类构造函数参数，如无参则传 null
+     * @param boolean $isSingleton 如果 $name 是类名，是否获取单例实例，默认 false
+     * @return object
+     */
+    function get_bean($name, $params = null, $isSingleton = false)
+    {
+        return \hymie\BeanFactory::getInstance()->getBean($name, $params, $isSingleton);
+    }
+}
+
+if (!function_exists('get_array_item')) {
+    /**
+     * 获取数组指定 key 的值，若对应 key 不存在或者值 empty ，则范湖默认值。
+     * 默认值默认为 null。
+     *
+     * @param array $array
+     * @param string/int $key
+     * @param mixed $default
+     *
+     * @return mixed
+     */
+    function get_array_item($array, $key, $default = null)
+    {
+        Assert::isArray($array, 'Parameter $array need an Array!');
+        Assert::notEmpty($key, 'Parameter $key could not empty!');
+
+        if (array_key_exists($key, $array)) {
+            return (!empty($array[$key])) ? $array[$key] : $default;
+        } else {
+            return $default;
+        }
+    }
+}
+
+if (!function_exists('get_config')) {
+
+    /**
+     * 获取配置信息
+     *
+     * @param string $key
+     */
+    function get_config($key)
+    {
+        Assert::notEmpty($key, 'key could not empty');
+
+        $config = \hymie\Config::getInstance();
+
+        return $config->get($key);
+    }
+}
+
+if (!function_exists('log_debug')) {
+
+    /**
+     * 输出 debug 日志的帮助函数
+     *
+     * @param    string    $msg    日志消息
+     * @param    array    $extra    日志额外信息数组
+     */
+    function log_debug($msg, $extra = array())
+    {
+        \hymie\Logger::getInstance()->debug($msg, $extra);
+    }
+}
+
+if (!function_exists('log_info')) {
+    /**
+     * 输出 info 日志的帮助函数
+     * 
+     * @param string $msg 日志消息
+     * @param array  $extra 日志额外信息数组
+     */
+    function log_info($msg, $extra = array())
+    {
+        \hymie\Logger::getInstance()->info($msg, $extra);
+    }
+}
+
+if (!function_exists('log_warning')) {
+    /**
+     * 输出 warning 日志的帮助函数
+     * 
+     * @param string $msg 日志消息
+     * @param array  $extra 日志额外信息数组
+     */
+    function log_warning($msg, $extra = array())
+    {
+        \hymie\Logger::getInstance()->warning($msg, $extra);
+    }
+}
+
+if (!function_exists('log_error')) {
+    /**
+     * 输出 error 日志的帮助函数
+     * 
+     * @param    string    $msg    日志消息
+     * @param    array    $extra   日志额外信息数组
+     */
+    function log_error($msg, $extra = array())
+    {
+        \hymie\Logger::getInstance()->error($msg, $extra);
+    }
+}
+
+if (!function_exists('really_exists')) {
+    /**
+     * 键存在且值已经设置（is_set 返回 true)
+     *
+     * @param array $array  查找的数组
+     * @param string $key   键名
+     * @return boolean
+     */
+    function really_exists($array, $key)
+    {
+        if (!is_array($array) || is_null($key)) {
+            return false;
+        }
+
+        if (!array_key_exists($key, $array) || !isset($array[$key])) {
+            return false;
+        }
+
+        return true;
+    }
+}
+
+if (!function_exists('set_cookie')) {
+
+    /**
+     * 设置 cookie 的帮助函数
+     *
+     * @param    string    $name    cookie 名
+     * @param    string     $value    cookie 值
+     * @param    int        $expire    过期时间，默认0（关闭浏览器失效）
+     * @param    string    $path    路径
+     */
+    function set_cookie($name, $value = '', $expire = 0, $path = '')
+    {
+
+        $conifg = get_config('cookie');
+
+        $prefix = $conifg['cookie_prefix'];
+        $domain = $conifg['cookie_domain'];
+        $path = $path == '' ? $conifg['cookie_path'] : $path;
+        $secure = $conifg['cookie_secure'];
+        $httponly = $conifg['cookie_httponly'];
+
+        setcookie($prefix . $name, $value, $expire, $path, $domain, $secure, $httponly);
+    }
+}
+
+if (!function_exists('start_session')) {
+
+    /**
+     * 启动 session，根据配置文件来设置 session 存储方式，并设置相关安全选项。
+     * 需要适应这个函数来启动会话
+     *
+     * @return void
+     */
+    function start_session()
+    {
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            log_info("Session: session already started, skip ...");
+            return;
+        }
+
+        if ((bool) ini_get('session.auto_start')) {
+            log_info('Session: session.auto_start is enabled in php.ini. aborting ...');
+            return;
+        }
+
+        $config = get_config("session");
+        $is_redis = $config['redis'];
+
+        $cookie_config = get_config('cookie');
+        session_set_cookie_params(
+            $config['expiration'],
+            $cookie_config['path'],
+            $cookie_config['domain'],
+            $cookie_config['secure'],
+            true // 设置 HttpOnly 参考 PHP session 安全设置
+        );
+
+        //设置 session 失效时间
+        $expiration = $config['expiration'];
+        if (empty($expiration)) {
+            $expiration = (int) ini_get('session.gc_maxlifetime');
+        }
+        ini_set('session.gc_maxlifetime', $expiration);
+
+        // 安全设置
+        ini_set('session.use_trans_sid', 0);
+        ini_set('session.use_strict_mode', 1);
+        ini_set('session.use_cookies', 1);
+        ini_set('session.use_only_cookies', 1);
+
+        if ($is_redis === true) {
+            log_debug("Session: Use predis session implementation.");
+            $class = new \hymie\session\RedisSession();
+            session_set_save_handler($class, true);
+        }
+
+        log_debug("Session: Use default files session implementation, nothing to do, just start session!");
+        session_start();
+    }
+}
+
+if (!function_exists('now')) {
+
+    /**
+     *  Unix to "Human"
+     *
+     * 格式化 Unix 时间戳，形成
+     * 2019-03-31 21:21:21 （长）
+     * 2019-03-31 （短）
+     *
+     *
+     * @param $time int        Unix timestamp
+     * @param $long bool    长时间或短时间
+     *
+     * @return    string
+     */
+    function now($time = null, $long = true)
+    {
+
+        $time = $time == null ? time() : $time;
+
+        if ($long == true) {
+            return date('Y-m-d H:i:s', $time);
+        } else {
+            return date('Y-m-d', $time);
+        }
+    }
+}
+
+if (!function_exists('http_404')) {
+    /**
+     * 返回 http 404 状态
+     *
+     * @param string $msg 消息
+     * @return void
+     */
+    function http_404($msg)
+    {
+        log_info("HTTP 404: " . $msg);
+        set_status_header(404);
+    }
+}
+
+if (!function_exists('http_500')) {
+    /**
+     * 返回 http 500 状态
+     *
+     * @param string $msg 消息
+     * @return void
+     */
+    function http_500($msg)
+    {
+        log_error('HTTP 500' . $msg);
+        set_status_header(500);
+    }
+}
+
+if (!function_exists('set_status_header')) {
+
+    /**
+     * 设置 http 头
+     *
+     * @param    int    http 状态码
+     * @param    string 消息
+     * @return    void
+     */
+    function set_status_header($code = 200, $text = '')
+    {
+        $http_status = array(
+            100 => 'Continue',
+            101 => 'Switching Protocols',
+
+            200 => 'OK',
+            201 => 'Created',
+            202 => 'Accepted',
+            203 => 'Non-Authoritative Information',
+            204 => 'No Content',
+            205 => 'Reset Content',
+            206 => 'Partial Content',
+
+            300 => 'Multiple Choices',
+            301 => 'Moved Permanently',
+            302 => 'Found',
+            303 => 'See Other',
+            304 => 'Not Modified',
+            305 => 'Use Proxy',
+            307 => 'Temporary Redirect',
+
+            400 => 'Bad Request',
+            401 => 'Unauthorized',
+            402 => 'Payment Required',
+            403 => 'Forbidden',
+            404 => 'Not Found',
+            405 => 'Method Not Allowed',
+            406 => 'Not Acceptable',
+            407 => 'Proxy Authentication Required',
+            408 => 'Request Timeout',
+            409 => 'Conflict',
+            410 => 'Gone',
+            411 => 'Length Required',
+            412 => 'Precondition Failed',
+            413 => 'Request Entity Too Large',
+            414 => 'Request-URI Too Long',
+            415 => 'Unsupported Media Type',
+            416 => 'Requested Range Not Satisfiable',
+            417 => 'Expectation Failed',
+            422 => 'Unprocessable Entity',
+            426 => 'Upgrade Required',
+            428 => 'Precondition Required',
+            429 => 'Too Many Requests',
+            431 => 'Request Header Fields Too Large',
+
+            500 => 'Internal Server Error',
+            501 => 'Not Implemented',
+            502 => 'Bad Gateway',
+            503 => 'Service Unavailable',
+            504 => 'Gateway Timeout',
+            505 => 'HTTP Version Not Supported',
+            511 => 'Network Authentication Required',
+        );
+
+        Assert::integer($code, "Code must be a integer value, and a valid http status code.");
+        Assert::keyExists($http_status, $code, 'status code must be a valid http status code.');
+
+        if (empty($text)) {
+            $text = $http_status[$code];
+        }
+
+        $server_protocol = (isset($_SERVER['SERVER_PROTOCOL']) && in_array($_SERVER['SERVER_PROTOCOL'], array('HTTP/1.0', 'HTTP/1.1', 'HTTP/2'), true))
+            ? $_SERVER['SERVER_PROTOCOL'] : 'HTTP/1.1';
+
+        if (!headers_sent()) {
+            header($server_protocol . ' ' . $code . ' ' . $text, true, $code);
+        }
+    }
+}
+

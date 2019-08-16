@@ -1,0 +1,215 @@
+<?PHP
+/**
+ * Project:       Hymie PHP MVC framework
+ * File:          Request.php
+ * Created Date:  2019-08-11
+ * 
+ * Github:        https://github.com/mahaixing/hymie-mvc
+ * Gitee:         https://gitee.com/mahaixing/hymie-mvc
+ * Composer:      https://packagist.org/packages/hymie/mvc
+ * 
+ * @author:       mahaixing(mahaixing@gmail.com)
+ * @license:      Apache License 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+ */
+
+namespace hymie;
+
+/**
+ * 请求工具类，尽可能使用这个类，这个类获取 $_GET $_POST $_REQUEST
+ * 数据时会进行 xss过滤
+ */
+class Request
+{
+
+    /**
+     * 当前请求的控制器，如果 PATH_INFO 启用则获取 $_SERVER['PATH_INFO']数据
+     * 否则从 query_string 中获取
+     *
+     * @var stiring
+     */
+    private $path;
+
+    /**
+     * url 配置
+     *
+     * @var array
+     */
+    private $config;
+
+    /**
+     * 安全类
+     *
+     * @var \voku\helper\AntiXSS
+     */
+    private $xss;
+
+    use \hymie\traits\Singleton;
+
+    /**
+     * 构造函数
+     */
+    public function __construct()
+    {
+        $this->config = get_config('url');
+
+        $this->xss = \hymie\security\Xss::getInstance();
+    }
+
+    /**
+     * 获取当前请求路径（不包含 query_string 部分）
+     *
+     * @return void
+     */
+    public function path($xss = false)
+    {
+        if (empty($this->path)) {
+            if ($this->config['enable_query_string'] == false) {
+                if (isset($_SERVER['PATH_INFO'])) {
+                    $this->path = $_SERVER['PATH_INFO'];
+                }
+            } else {
+                if (isset($_REQUEST[$this->config['query_string_key']])) {
+                    $this->path = $_REQUEST[$this->config['query_string_key']];
+                    $this->path = str_replace('.', '/', $this->path);
+                }
+            }
+
+            $this->path = empty($this->path) ? "/" : $this->path;
+            $pos = strpos($this->path, '/');
+            $this->path = ($pos === false or $pos > 0) ? '/' . $this->path : $this->path;
+        }
+
+        return ($xss == true) ? $this->xss->cleanXss($this->path) : $this->path;
+    }
+
+    /**
+     * $_GET 数据
+     *
+     * @param string $key
+     * @return mixed
+     */
+    public function get($key, $xss = false)
+    {
+        if (isset($_GET[$key])) {
+            return ($xss === true) ? $this->xss->cleanXss($_GET[$key]) : $_GET[$key];
+        }
+
+        return null;
+    }
+
+    /**
+     * $_POST 数据
+     *
+     * @param string $key
+     * @return mixed
+     */
+    public function post($key, $xss = false)
+    {
+        if (isset($_POST[$key])) {
+            return ($xss === true) ? $this->xss->cleanXss($_POST[$key]) : $_POST[$key];
+        }
+
+        return null;
+    }
+
+    /**
+     * request 数据
+     *
+     * @param string $key
+     * @return mixed
+     */
+    public function request($key, $xss = false)
+    {
+        if (isset($_REQUEST[$key])) {
+            return ($xss === true) ? $this->xss->cleanXss($_REQUEST[$key]) : $_REQUEST[$key];
+        }
+
+        return null;
+    }
+
+    /**
+     * cooke 数据
+     *
+     * @param string $key
+     * @return mixed
+     */
+    public function cookie($key, $xss = false) 
+    {
+        if (isset($_COOKIE[$key])) {
+            return ($xss === true) ? $this->xss->cleanXss($_COOKIE[$key]) : $_COOKIE[$key];
+        }
+
+        return null;
+    }
+
+    public function has($key)
+    {
+        return array_key_exists($key, $_REQUEST);
+    }
+
+    /**
+     * 是否是 ajax 请求
+     *
+     * @return boolean
+     */
+    public function isAjax()
+    {
+        return (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest');
+        // return (isset($_SERVER["HTTP_X_REQUESTED_WITH"]) && strtolower($_SERVER["HTTP_X_REQUESTED_WITH"] == 'xmlhttprequest'));
+    }
+
+    /**
+     * 获取 user agent 信息
+     *
+     * @return void
+     */
+    public function userAgent()
+    {
+        return $_SERVER['HTTP_USER_AGENT'];
+    }
+
+    /**
+     * 根据指定 key 获取头信息
+     *
+     * @param string $key
+     * @return string
+     */
+    public function getHeader($key)
+    {
+        return $_SERVER[$key];
+    }
+
+    /**
+     * 检查是否是手机端，使用 mobiledetect/mobiledetectlib
+     * https://github.com/serbanghita/Mobile-Detect
+     *
+     * @return boolean
+     */
+    public static function isMobile() 
+    {
+        $detect = new \Detection\MobileDetect();
+        return $detect->isMobile();
+    }
+
+    public function setPath($value)
+    {
+        $this->path = $value;
+    }
+
+    public function getPath()
+    {
+        return $this->path;
+    }
+
+    public function setConfig($value)
+    {
+        $this->config = $value;
+    }
+
+    public function getConfig()
+    {
+        return $this->config;
+    }
+
+}
+

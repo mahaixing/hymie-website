@@ -1,0 +1,134 @@
+<?PHP
+
+/**
+ * Project:       Hymie PHP MVC framework
+ * File:          Application.php
+ * Created Date:  2019-08-11
+ *
+ * Github:        https://github.com/mahaixing/hymie-mvc
+ * Gitee:         https://gitee.com/mahaixing/hymie-mvc
+ * Composer:      https://packagist.org/packages/hymie/mvc
+ *
+ * @author:       mahaixing(mahaixing@gmail.com)
+ * @license:      Apache License 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+ */
+
+namespace hymie;
+
+use Webmozart\Assert\Assert;
+
+/**
+ * 应用程序类，用于启动框架。
+ * 
+ * 应用程序类在前端控制器（入口文件）中被创建，并调用 Application::run() 方法启动应用。
+ * 
+ * 可以有多个前端控制器（入口）因此需要制定应用程序需要用到哪些模块，
+ */
+class Application
+{
+    /**
+     * 使用的模块数组
+     *
+     * @var array
+     */
+    private $modules;
+
+    /**
+     * 路由
+     *
+     * @var \hymie\router\Router
+     */
+    private $router;
+
+    /**
+     * 过滤器链
+     *
+     * @var \hymie\filter\FilterChain
+     */
+    private $filterChain;
+
+    /**
+     * 构造函数 
+     *
+     * @param array $modules 当前的前端控制器需要用到的模块名
+     */
+    public function __construct($modules)
+    {
+        Assert::isArray($modules, 'need modules.');
+        $this->modules = $modules;
+
+        // 设置时区，TIMEZONE 常量在 config.php 中
+        date_default_timezone_set(TIMEZONE);
+        $this->check();
+        $this->init();
+    }
+
+    /**
+     * 检查 php 版本是否满足
+     *
+     * @return void
+     */
+    private function check()
+    {
+        if (version_compare(PHP_VERSION, '7.1.0') < 0) {
+            die('need php version > 7.1.0');
+            exit(-1);
+        }
+    }
+
+    /**
+     * 初始化函数
+     * 
+     * 1. 注册模块类加载器
+     * 2. 注册异常处理
+     * 3. 初始化路由
+     * 4. 初始化过滤器
+     *
+     * @return void
+     */
+    private function init()
+    {
+        // 注册自动加载，用于加载 APP_ROOT 目录下的所有类，以及 function
+        \hymie\Loader::register();
+        \hymie\exception\ExceptionHandler::register();
+
+        // 读取路由和过滤器
+        $this->router = new \hymie\router\Router($this->modules);
+        $this->filterChain = new \hymie\filter\FilterChain($this->modules);
+    }
+
+    /**
+     * 执行应用
+     */
+    public function run()
+    {
+        $controllerInfo = $this->router->getController();
+        $module = $controllerInfo['module'];
+
+        // 执行拦截器 executeFilter 方法
+        $result = $this->filterChain->executeFilter();
+
+        if ($result === true) {
+            $controller = $controllerInfo['controller'];
+            $reflectMethod = $controllerInfo['method'];
+            $params = $controllerInfo['params'];
+            if (count($params) > 0) {
+                $result = $reflectMethod->invokeArgs($controller, $params);
+            } else {
+                $result = $reflectMethod->invoke($controller);
+            }
+        }
+
+        if ($result != null) {
+            if (is_string($result)) {
+                $result = result()->success()->setView($result);
+            }
+            $view = \hymie\view\View::getView($module, $result);
+            $view->render($result);
+        }
+        // if arrive here
+        // maby programmer direct output something in controller or filter.
+        // maby something wrong, the global exception handler will catch it.
+    }
+}
+
