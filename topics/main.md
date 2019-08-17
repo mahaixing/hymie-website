@@ -88,17 +88,13 @@ Hymie PHPMVC 是一个轻量级 MVC 框架，实现中借鉴了 [webpy](http://w
 ### 2.1 新建项目
   1. 在 `document_root` 下新建目录 `mkdir example` 并进入目录 `cd example`
   
-  2. 新建 `composer.json` 文件，内容如下：
+  2. 执行命令：
 
   ```
-  {
-      "require": {
-          "hymie/mvc": "^0.5"
-      }
-  }
+    composer require hymie/mvc
   ```
 
-  3. 保存后执行 `composer install`，composer 会安装框架及依赖库。
+  3. composer 会安装框架及依赖库。
 
 ### 2.2 使用 hymie 脚本拷贝配置、创建模块
 
