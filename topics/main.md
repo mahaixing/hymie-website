@@ -258,7 +258,7 @@ Service 用来实现业务逻辑。控制数据库事务。Service 为遵循 PSR
 
 控制器执行后可以返回 `\hymie\Result` 对象，`\hymie\Result` 对象支持链式调用，并且如果是 ajax 请求的话， json 视图会根据 `\hymie\Result` 对象组织 json 数据。
 
-如果控制器不反悔 `\hymie\Result` 对象，那么控制器需要自行输出数据到浏览器或者使用 `R($to)` 函数跳转网页。
+如果控制器不返回 `\hymie\Result` 对象，那么控制器需要自行输出数据到浏览器或者使用 `R($to)` 函数跳转网页。
 
 #### 3.2.7 URL 模式
 支持两种 URL 模式，PATHINFO 和 QueryString，在 `config.php` 中的 `url` 部分进行配置。`url` 配置会影响到 `\hymie\Url` 类生成链接的方式。

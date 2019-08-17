@@ -120,20 +120,20 @@ Url 类是生成地址的工具类，它根据 `config.php` 中 `$config['url']`
 #### 2.2.2 `U` `_U` `R` 函数
 这两个函数是 `hymie\Url` 类的帮助函数
 
-1. `U` 函数
-  `function U($path, $params = null, $script_name = '')` 直接输出短地址，如果 `$path` 是以 `http(s)` 开头的则是站外地址。
+1. `U` 函数 `function U($path, $params = null, $script_name = '')`   
+  直接输出短地址，如果 `$path` 是以 `http(s)` 开头的则是站外地址。
 
-2. `_U` 函数
-  `function _U($path, $params = null, $script_name = '')` 返回短地址，如果 `$path` 是以 `http(s)` 开头的则是站外地址。
+2. `_U` 函数 `function _U($path, $params = null, $script_name = '')`  
+返回短地址，如果 `$path` 是以 `http(s)` 开头的则是站外地址。
 
-3. `R` 函数
-  `function R($to)` 跳转到 `$to` 地址，如果 `$to` 是以 `http(s)` 开头的则代表是站外地址。
+3. `R` 函数 `function R($to)`   
+跳转到 `$to` 地址，如果 `$to` 是以 `http(s)` 开头的则代表是站外地址。
 
-### 上下文函数
+### 2.3 上下文函数
 
 `context_path()` 函数返回当前上下文，引用静态资源时可使用该函数。
 
-### 静态资源
+### 2.4 静态资源
 
 建议将静态资源统一放到 `static` 目录，或者其他名字的目录下，以便于统一管理，因为如果开启 pathinfo 和 url_rewrite 需要对 web 服务器做重写配置，静态资源统一放到单独目录下便于配置服务器重写规则。
 
@@ -179,8 +179,8 @@ class SomeFilter extends \hymie\filter\Filter
 {
     public function doFilter()
     {
-        $chechResult = doSomeBusinessCheck();
-        if ($chechResult == true) {
+        $checkResult = doSomeBusinessCheck();
+        if ($checkResult == true) {
             return true;
         } else {
             $data = ["error" => "err message", "data" => "somedata"]
