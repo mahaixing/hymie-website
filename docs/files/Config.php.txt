@@ -9,7 +9,7 @@
  * Composer:      https://packagist.org/packages/hymie/mvc
  * 
  * @author:       mahaixing(mahaixing@gmail.com)
- * @license:      Apache License 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+ * @license:      MIT
  */
 
 namespace hymie;

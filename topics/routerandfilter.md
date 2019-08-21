@@ -1,7 +1,13 @@
 ## 一、路由
-Hymie PHPMVC 框架使用正则表达式定义路由。
+Hymie PHPMVC 框架使用正则表达式定义路由。框架支持两种路由配置方式
+
+* 配置文件 `config.router.php` 
+
+* 注解 @RouterMapping(value="...")
 
 基于框架开发的应用由一到多个模块组成，路由则定义在每个模块的 `config.router.php` 配置文件中。
+
+> 路由定义采用正则表达式方式，请参考 **配置文件** 章节示例。
 
 ### 1.1 路由的处理方式
 1. 环境区别  
@@ -54,8 +60,51 @@ $router = array_merge($router, $b);
 return $router;
 ```
 
-### 1.3 路由定义
-路由定义采用正则表达式方式，请参考 **配置文件** 章节示例。
+### 1.3 注解
+
+框架支持通过注解的方式配置路由，在使用注解前需要先在控制器中引入注解类 `use hymie\annotation\RouterMapping;`
+
+注解定义的方法参考一下代码示例
+
+  ```
+    use hymie\annotation\RouterMapping;
+    
+    /**
+     * @RouterMapping(value="/(\w*)")
+     */
+    class SomeController
+    {
+        public function index($name)
+        {
+           // handle path  '/abc' '/def' /ghi
+           // $name = "abc" or "def" or "ghi"
+        }
+    }
+  ```
+
+   ```
+    use hymie\annotation\RouterMapping;
+    
+    /**
+     * @RouterMapping(value="/other")
+     */
+    class SomeOtherController
+    {
+        public function index()
+        {
+           // handle path  '/other'
+        }
+
+        /**
+         * @RouterMapping(value="/foo")
+         */
+        public function login()
+        {
+            // handle path '/other/foo"
+        }
+    }
+  ```
+> 如果类的方法需要注解，那么类上的注解一般作为 URL 目录区分用，在这种情况下需要慎重使用正则表达式。
 
 ## 二、URL 
 ### 2.1 URL 模式

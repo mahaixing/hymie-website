@@ -1,0 +1,59 @@
+<?PHP
+
+/**
+ * Project:       Hymie PHP MVC framework
+ * File:          RouterAnnotation.php
+ * Created Date:  2019-08-20
+ * 
+ * Github:        https://github.com/mahaixing/hymie-mvc
+ * Gitee:         https://gitee.com/mahaixing/hymie-mvc
+ * Composer:      https://packagist.org/packages/hymie/mvc
+ * 
+ * @author:       mahaixing(mahaixing@gmail.com)
+ * @license:      MIT License
+ */
+
+namespace hymie\annotation;
+
+use Webmozart\Assert\Assert;
+
+/**
+ * @Annotation
+ * @Target({"CLASS", "METHOD"})
+ */
+final class RouterMapping
+{
+    /** 
+     * @var string 
+     * @Required
+     */
+    private $value;
+
+    public function __construct($values)
+    {
+        Assert::keyExists(
+            $values,
+            'value',
+            "Annotation RouterMapping need a value, eg: @RouterMapping(value='/path')."
+        );
+
+        $value = trim($values['value']);
+        Assert::notEmpty(
+            $value,
+            "Annotation RouterMapping need a none empty value, eg: @RouterMapping(value='/path')."
+        );
+
+        $pos = strpos($value, '/');
+        if ($pos === false || $pos > 0) {
+            $this->value = '/' . $value;
+        } else {
+            $this->value = $value;
+        }
+    }
+
+    public function getValue()
+    {
+        return $this->value;
+    }
+}
+

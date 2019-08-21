@@ -10,11 +10,12 @@
  * Composer:      https://packagist.org/packages/hymie/mvc
  *
  * @author:       mahaixing(mahaixing@gmail.com)
- * @license:      Apache License 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+ * @license:      MIT
  */
 
 namespace hymie;
 
+use Doctrine\Common\Annotations\AnnotationRegistry;
 use Webmozart\Assert\Assert;
 
 /**
@@ -57,23 +58,7 @@ class Application
         Assert::isArray($modules, 'need modules.');
         $this->modules = $modules;
 
-        // 设置时区，TIMEZONE 常量在 config.php 中
-        date_default_timezone_set(TIMEZONE);
-        $this->check();
         $this->init();
-    }
-
-    /**
-     * 检查 php 版本是否满足
-     *
-     * @return void
-     */
-    private function check()
-    {
-        if (version_compare(PHP_VERSION, '7.1.0') < 0) {
-            die('need php version > 7.1.0');
-            exit(-1);
-        }
     }
 
     /**
@@ -88,9 +73,28 @@ class Application
      */
     private function init()
     {
+        //检查 php 版本
+        if (version_compare(PHP_VERSION, '7.1.0') < 0) {
+            die('need php version > 7.1.0');
+            exit(-1);
+        }
+
+        // 设置时区，TIMEZONE 常量在 config.php 中
+        date_default_timezone_set(TIMEZONE);
+
         // 注册自动加载，用于加载 APP_ROOT 目录下的所有类，以及 function
         \hymie\Loader::register();
         \hymie\exception\ExceptionHandler::register();
+
+        // 注册 Annotation autoloader
+        // AnnotationRegistry::registerFile(__DIR__ . DIRECTORY_SEPARATOR . 'annotation' . DIRECTORY_SEPARATOR . 'RouterMapping.php');
+        AnnotationRegistry::registerLoader(function ($class) {
+            $file = str_replace("\\", DIRECTORY_SEPARATOR, $class) . ".php";
+            $file = __DIR__ . DIRECTORY_SEPARATOR . 'annotation' . DIRECTORY_SEPARATOR . $file;
+            if (file_exists($file)) {
+                require_once $file;
+            }
+        });
 
         // 读取路由和过滤器
         $this->router = new \hymie\router\Router($this->modules);

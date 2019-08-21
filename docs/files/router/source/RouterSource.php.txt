@@ -1,0 +1,68 @@
+<?PHP
+
+/**
+ * Project:       Hymie PHP MVC framework
+ * File:          RouterSource.php
+ * Created Date:  2019-08-20
+ * 
+ * Github:        https://github.com/mahaixing/hymie-mvc
+ * Gitee:         https://gitee.com/mahaixing/hymie-mvc
+ * Composer:      https://packagist.org/packages/hymie/mvc
+ * 
+ * @author:       mahaixing(mahaixing@gmail.com)
+ * @license:      MIT License
+ */
+
+namespace hymie\router\source;
+
+/**
+ * 抽象的路由来源类，目前支持文件配置和类扫描两种方式。
+ */
+abstract class RouterSource
+{
+
+    /**
+     * 根据传入的模块名读取路由配置，返回数组，格式为
+     * 
+     * [
+     *  0,
+     *  "pathRegex" => [
+     *      'module" => "moduleName",
+     *      "controllerDef" => ["controllerClassName", "controllerMethodName"]
+     *      // or
+     *      "controllerDef" => "controllerClassName:controllerMethodName"
+     *   }
+     * ]
+     * 
+     * 或者
+     * 
+     * [
+     *   'path_regex' => ['controller_classname', 'method_name']
+     * ]
+     *
+     * @param array $modules
+     * @return void
+     */
+    public abstract function getRouterInfo($modules);
+
+    /**
+     * 创建路由数组项目，创建前会检查路由是否已定义，如已定义会输出 warning 级别日志后替换原项目。
+     *
+     * @param array $routerInfo
+     * @param string $module
+     * @param string $path
+     * @param string|array $controllerInfo
+     * @return array
+     */
+    protected function createRouterInfoItem(&$routerInfo, $module, $path, $controllerInfo)
+    {
+        if (\array_key_exists($path, $routerInfo)) {
+            \log_warning(sprintf("%s: router path '%s' already existed, old controller info will be replaced with new one.", self::class, $path), $routerInfo[$path]);
+        }
+        // 0 -> 初始计数
+        // module -> 模块名，Application 需要用它读取视图文件 
+        // controllerDef: ["控制器类名", "方法名"] 或者 "控制器类名:方法名"
+        return [$path => [0, ['module' => $module, 'controllerDef' => $controllerInfo]]];
+    }
+}
+

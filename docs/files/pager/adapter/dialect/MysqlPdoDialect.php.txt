@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Project:       Hymie PHP MVC framework
  * File:          MysqlPdoDialect.php
@@ -9,7 +10,7 @@
  * Composer:      https://packagist.org/packages/hymie/mvc
  * 
  * @author:       mahaixing(mahaixing@gmail.com)
- * @license:      Apache License 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+ * @license:      MIT
  */
 
 namespace hymie\pager\adapter\dialect;
@@ -21,7 +22,8 @@ class MysqlPdoDialect extends AbstractPdoDialect
 {
     public function getDataSql($sql, $page, $pageSize)
     {
-        $sql = sprintf("select * from (%s) as t limit %s, %s", $sql, $page, $pageSize);
+        $start = $page * $pageSize;
+        $sql = sprintf("select * from (%s) as t limit %d, %d", $sql, $start, $pageSize);
         log_debug(sprintf("MySqlPdoDialect: Use '%s' to select page data.", $sql));
 
         return $sql;
@@ -35,3 +37,4 @@ class MysqlPdoDialect extends AbstractPdoDialect
         return $sql;
     }
 }
+

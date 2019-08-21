@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Project:       Hymie PHP MVC framework
  * File:          OciPdoDialect.php
@@ -9,7 +10,7 @@
  * Composer:      https://packagist.org/packages/hymie/mvc
  * 
  * @author:       mahaixing(mahaixing@gmail.com)
- * @license:      Apache License 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+ * @license:      MIT
  */
 
 namespace hymie\pager\adapter\dialect;
@@ -21,11 +22,24 @@ class OciPdoDialect extends AbstractPdoDialect
 {
     public function getDataSql($sql, $page, $pageSize)
     {
-        throw new \RuntimeException('not implment yet!');
+        $start = $page * $pageSize;
+        $end = $page * $pageSize + $pageSize;
+        $sql = <<<SQL
+        SELECT * FROM (
+            SELECT t.*, ROWNUM rn FROM (%s) t
+            WHERE ROWNUM <= %d
+        ) WHERE rn > %d
+SQL;
+
+        $sql = sprintf($sql, $end, $start);
     }
 
     public function getDataCountSql($sql)
     {
-        throw new \RuntimeException('not implment yet!');
+        $sql = sprintf("select count(0) as cnt from (%s) as t", $sql);
+        log_debug(sprintf("%s: Use '%s' to select page data count.", self::class, $sql));
+
+        return $sql;
     }
 }
+

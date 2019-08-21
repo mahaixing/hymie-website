@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Project:       Hymie PHP MVC framework
  * File:          SqlsrvPdoDialect.php
@@ -9,7 +10,7 @@
  * Composer:      https://packagist.org/packages/hymie/mvc
  * 
  * @author:       mahaixing(mahaixing@gmail.com)
- * @license:      Apache License 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+ * @license:      MIT
  */
 
 namespace hymie\pager\adapter\dialect;
@@ -29,3 +30,4 @@ class SqlsrvPdoDialect extends AbstractPdoDialect
         throw new \RuntimeException('not implment yet!');
     }
 }
+

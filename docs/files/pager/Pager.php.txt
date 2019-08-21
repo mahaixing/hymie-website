@@ -1,4 +1,5 @@
 <?PHP
+
 /**
  * Project:       Hymie PHP MVC framework
  * File:          Pager.php
@@ -9,7 +10,7 @@
  * Composer:      https://packagist.org/packages/hymie/mvc
  * 
  * @author:       mahaixing(mahaixing@gmail.com)
- * @license:      Apache License 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+ * @license:      MIT
  */
 
 namespace hymie\pager;
@@ -131,9 +132,13 @@ class Pager
     public static function getPager($adapterObjOrClassName, ...$params)
     {
         if (is_string($adapterObjOrClassName)) {
-            Assert::classExists($adapterObjOrClassName,
-                sprintf("%s: '%s' is not valid adapter class name, does not exist.", 
-                        self::class, $adapterObjOrClassName)
+            Assert::classExists(
+                $adapterObjOrClassName,
+                sprintf(
+                    "%s: '%s' is not valid adapter class name, does not exist.",
+                    self::class,
+                    $adapterObjOrClassName
+                )
             );
             $className = $adapterObjOrClassName;
         } elseif (is_object($adapterObjOrClassName)) {
@@ -143,23 +148,34 @@ class Pager
                 $className = "\\hymie\\pager\\adapter\\MedooPagerAdapter";
             } else {
                 throw new \InvalidArgumentException(
-                    sprintf("%s: '%s' is not valid adapter instance, need instance of \PDO or \Medoo\Medoo.", 
-                            self::class, get_class($adapterObjOrClassName))
+                    sprintf(
+                        "%s: '%s' is not valid adapter instance, need instance of \PDO or \Medoo\Medoo.",
+                        self::class,
+                        get_class($adapterObjOrClassName)
+                    )
                 );
             }
             $params = array_merge([$adapterObjOrClassName], $params);
         } else {
             throw new \InvalidArgumentException(
-                sprintf("%s: need adapter classname or instance, '%s' given!", 
-                        self::class, get_type($adapterObjOrClassName))
+                sprintf(
+                    "%s: need adapter classname or instance, '%s' given!",
+                    self::class,
+                    get_type($adapterObjOrClassName)
+                )
             );
         }
 
         $adapter = get_bean($className, $params);
 
-        Assert::notNull($adapter,
-            sprintf("%s: '%s' is not valid adapter classname or instance, class '%s' not exist.", 
-                        self::class, $className, get_class($adapter))
+        Assert::notNull(
+            $adapter,
+            sprintf(
+                "%s: '%s' is not valid adapter classname or instance, class '%s' not exist.",
+                self::class,
+                $className,
+                get_class($adapter)
+            )
         );
         Assert::isInstanceOf(
             $adapter,
@@ -190,6 +206,13 @@ class Pager
         $this->checkConfig($config);
     }
 
+    /**
+     * 执行分页计算
+     *
+     * @param string $page 当前页
+     * @param string $pageSize 每页长度
+     * @return void
+     */
     public function doPage($page = null, $pageSize = null)
     {
         $this->initKeyParam($page, $pageSize);
@@ -251,8 +274,9 @@ class Pager
             $this->current = $page;
         }
         //如果类型不对
-        if (preg_match("/^[0-9]+\Z$/i", $this->current) === 0) {
+        if (preg_match("/^[1-9]\d*\Z$/i", $this->current) === 0) {
             $this->current = 1;
+            log_debug(sprintf("%s: '%s' not a number, use default page number 1."), self::class, $this->current);
         }
         log_debug(sprintf("%s: Current page position is '%s", self::class, $this->current));
 
@@ -264,8 +288,9 @@ class Pager
             $this->pageSize = $pageSize;
         }
         //如果类型不对
-        if (preg_match("/^[0-9]+\Z$/i", $this->pageSize) === 0) {
+        if (preg_match("/^[1-9]\d*\Z$/i", $this->pageSize) === 0) {
             $this->pageSize = self::DEFAULT_PAGE_SIZE;
+            log_debug(sprintf("%s: ’%s' not a number, use default pagesize number %d."), self::class, $this->pageSize, self::DEFAULT_PAGE_SIZE);
         }
         log_debug(sprintf("%s: Current page size is '%s", self::class, $this->pageSize));
     }
@@ -307,26 +332,52 @@ class Pager
         return $result;
     }
 
+    /**
+     * 获取分页后的数据
+     *
+     * @return array
+     */
     public function getData()
     {
         return $this->data;
     }
 
+    /**
+     * 总记录数
+     *
+     * @return int
+     */
     public function getCount()
     {
         return $this->dataCount;
     }
 
+    /**
+     * 最大页数
+     *
+     * @return int
+     */
     public function getMax()
     {
         return $this->max;
     }
 
+    /**
+     * 当前页
+     *
+     * @return int
+     */
     public function getCurrent()
     {
         return $this->current;
     }
 
+    /**
+     * 获取前 n 页 当前页 后 n 页数组
+     *
+     * @param integer $leftAndRight
+     * @return array
+     */
     public function getRangeArray($leftAndRight = 3)
     {
         $result = $this->getPrevArray($leftAndRight);
@@ -336,11 +387,22 @@ class Pager
         return $result;
     }
 
+    /**
+     * 下一页
+     *
+     * @return void
+     */
     public function getNext()
     {
         return $this->next;
     }
 
+    /**
+     * 下 n 页
+     *
+     * @param integer $n
+     * @return void
+     */
     public function getNextArray($n = 3)
     {
         if ($n <= 1) {
@@ -358,11 +420,22 @@ class Pager
         return $result;
     }
 
+    /**
+     * 前一页
+     *
+     * @return void
+     */
     public function getPrev()
     {
         return $this->prev;
     }
 
+    /**
+     * 前 n 页
+     *
+     * @param integer $n
+     * @return void
+     */
     public function getPrevArray($n = 3)
     {
         if ($n <= 1) {
@@ -380,6 +453,12 @@ class Pager
         return array_reverse($result);
     }
 
+    /**
+     * 生成包含分页信息的 QueryString 字符串，用于拼链接
+     *
+     * @param int $pageNumber
+     * @return void
+     */
     private function genPageQueryStringArray($pageNumber)
     {
         $result = array();
@@ -396,16 +475,32 @@ class Pager
         return $result;
     }
 
+    /**
+     * 页大小
+     *
+     * @return void
+     */
     public function getPageSize()
     {
         return $this->pageSize;
     }
 
+    /**
+     * 分页适配器
+     *
+     * @return \hymie\pager\adapter\PagerAdapterInterface
+     */
     public function getAdapter()
     {
         return $this->adapter;
     }
 
+    /**
+     * 设置分页适配器
+     *
+     * @param \hymie\pager\adapter\PagerAdapterInterface $value
+     * @return void
+     */
     public function setAdapter($value)
     {
         $this->adapter = $value;

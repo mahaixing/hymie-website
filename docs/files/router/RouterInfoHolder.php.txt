@@ -1,0 +1,125 @@
+<?PHP
+
+/**
+ * Project:       Hymie PHP MVC framework
+ * File:          ControllerInfoHolder.php
+ * Created Date:  2019-08-11
+ *
+ * Github:        https://github.com/mahaixing/hymie-mvc
+ * Gitee:         https://gitee.com/mahaixing/hymie-mvc
+ * Composer:      https://packagist.org/packages/hymie/mvc
+ *
+ * @author:       mahaixing(mahaixing@gmail.com)
+ * @license:      MIT
+ */
+
+namespace hymie\router;
+
+/**
+ * 保存路由表信息，路由表信息保存在缓存中
+ */
+class RouterInfoHolder
+{
+    private $cache;
+    private $cacheKey = 'controller_info_holder.';
+    private $routers = [];
+
+    /**
+     * 构造函数，检查缓存中是否有路由表，如有则使用否重新构造。
+     *
+     * @param array $modules
+     */
+    public function __construct($modules)
+    {
+        $this->cache = \hymie\cache\Cache::getInstance();
+        $this->cacheKey .= implode(".", $modules);
+
+        if ($this->hasRouterInfo()) {
+            $this->routers = $this->cache->get($this->cacheKey);
+        }
+
+        register_shutdown_function(array($this, 'sortRouters'));
+    }
+
+    /**
+     * 是否缓存了路由定义
+     *
+     * @return boolean
+     */
+    public function hasRouterInfo()
+    {
+        return $this->cache->has($this->cacheKey);
+    }
+
+    /**
+     * 将 $routers 与缓存中已有的路由表合并，若缓存中没有路由表，则创建新的缓存。
+     *
+     * @param array $routers
+     * @return void
+     */
+    public function addRouterInfo($routers)
+    {
+        if (is_null($routers) || !is_array($routers)) {
+            return;
+        }
+
+        foreach ($routers as $pathRegex => $controllerDef) {
+            if (array_key_exists($pathRegex, $this->routers)) {
+                log_warning(
+                    sprintf("%s: duplicate router definition path '%s'", self::class, $pathRegex),
+                    [$pathRegex, $controllerDef]
+                );
+            }
+            $this->routers[$pathRegex] = $controllerDef;
+        }
+        $this->cache->set($this->cacheKey, $this->routers);
+    }
+
+    /**
+     * 根据路径获取匹配的控制器定义
+     *
+     * @param string $path
+     * @return array [matchs, moduleControllerDef]
+     */
+    public function getControllerInfo($path)
+    {
+        if (is_null($this->routers) || !is_array($this->routers)) {
+            log_debug(sprintf("%s: router definition does not exist", self::class));
+            return null;
+        }
+
+        log_debug(sprintf("%s: start to test path '%s', use router definitions.", self::class, $path));
+        foreach ($this->routers as $urlRegex => &$routerInfo) {
+            $pattern = sprintf('#^%s\/?\Z#i', $urlRegex);
+            if (preg_match($pattern, $path, $matches) > 0) {
+                log_debug(sprintf("%s: router '%s' accept path '%s'", self::class, $urlRegex, $path), $matches);
+                //请求计数加 1
+                $routerInfo[0] = $routerInfo[0] + 1;
+                // 放到 shutdown_function 里面做，单元测试应该看不到效果，需要用页面请求来测
+                // arsort($this->routers);
+                // $this->cache->set($this->cacheKey, $this->routers);
+                //路由定义
+                $moduleControllerDef = $routerInfo[1];
+                // 这里要获取分组参数，所以，先把数组第一个去掉。数组第一条匹配的是 path
+                array_shift($matches);
+                return [$matches, $moduleControllerDef];
+            }
+        }
+        log_debug(sprintf("%s: '%s' does not match any router definition.", self::class, $path));
+        return null;
+    }
+
+    /**
+     * 注册 shutdown 方法，对缓存中的路由根据访问次数进行排序。
+     *
+     * @return void
+     */
+    public function sortRouters()
+    {
+        if ($this->routers != null && is_array($this->routers)) {
+            arsort($this->routers);
+            $this->cache->set($this->cacheKey, $this->routers);
+        }
+    }
+}
+

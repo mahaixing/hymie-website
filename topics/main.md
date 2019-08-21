@@ -282,46 +282,39 @@ Service 用来实现业务逻辑。控制数据库事务。Service 为遵循 PSR
     use hymie\annotation\RouterMapping;
     
     /**
-     * @RouterMapping(value="/")
+     * @RouterMapping(value="/(\w*)")
      */
     class SomeController
     {
-        public function index()
+        public function index($name)
         {
-           // handle path  '/'
-        }
-
-        /**
-         * @RouterMapping(value="/login")
-         */
-        public function login()
-        {
-            // handle path '/login'
+           // handle path  '/abc' '/def' /ghi
+           // $name = "abc" or "def" or "ghi"
         }
     }
   ```
 
-   ```
-    use hymie\annotation\RouterMapping;
-    
-    /**
-     * @RouterMapping(value="/other")
-     */
-    class SomeOtherController
-    {
-        public function index()
-        {
-           // handle path  '/other'
-        }
+  ```
+  use hymie\annotation\RouterMapping;
 
-        /**
-         * @RouterMapping(value="/foo")
-         */
-        public function login()
-        {
-            // handle path '/other/foo"
-        }
-    }
+  /**
+    * @RouterMapping(value="/other")
+    */
+  class SomeOtherController
+  {
+      public function index()
+      {
+          // handle path  '/other'
+      }
+
+      /**
+        * @RouterMapping(value="/foo")
+        */
+      public function login()
+      {
+          // handle path '/other/foo"
+      }
+  }
   ```
 
 ### 3.4 过滤器

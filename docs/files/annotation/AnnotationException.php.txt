@@ -1,0 +1,26 @@
+<?PHP
+
+/**
+ * Project:       Hymie PHP MVC framework
+ * File:          AnnotationException.php
+ * Created Date:  2019-08-21
+ * 
+ * Github:        https://github.com/mahaixing/hymie-mvc
+ * Gitee:         https://gitee.com/mahaixing/hymie-mvc
+ * Composer:      https://packagist.org/packages/hymie/mvc
+ * 
+ * @author:       mahaixing(mahaixing@gmail.com)
+ * @license:      MIT License
+ */
+
+namespace hymie\annotation;
+
+class AnnotationException extends \hymie\exception\hymieException
+{
+
+    public function __construct($msg, $code = 0, $previous = null)
+    {
+        parent::__construct($msg, $code, $previous);
+    }
+}
+

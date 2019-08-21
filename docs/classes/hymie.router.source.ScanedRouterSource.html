@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"/>
+    <meta charset="utf-8"/>
+    <title>API Documentation</title>
+    <meta name="author" content=""/>
+    <meta name="description" content=""/>
+
+    <link href="../css/bootstrap-combined.no-icons.min.css" rel="stylesheet">
+    <link href="../css/font-awesome.min.css" rel="stylesheet">
+    <link href="../css/prism.css" rel="stylesheet" media="all"/>
+    <link href="../css/template.css" rel="stylesheet" media="all"/>
+    
+    <!--[if lt IE 9]>
+    <script src="../js/html5.js"></script>
+    <![endif]-->
+    <script src="../js/jquery-1.11.0.min.js"></script>
+    <script src="../js/ui/1.10.4/jquery-ui.min.js"></script>
+    <script src="../js/bootstrap.min.js"></script>
+    <script src="../js/jquery.smooth-scroll.js"></script>
+    <script src="../js/prism.min.js"></script>
+    <!-- TODO: Add http://jscrollpane.kelvinluck.com/ to style the scrollbars for browsers not using webkit-->
+    <script type="text/javascript">
+    function loadExternalCodeSnippets() {
+        Array.prototype.slice.call(document.querySelectorAll('pre[data-src]')).forEach(function (pre) {
+            var src = pre.getAttribute('data-src');
+            var extension = (src.match(/\.(\w+)$/) || [, ''])[1];
+            var language = 'php';
+
+            var code = document.createElement('code');
+            code.className = 'language-' + language;
+
+            pre.textContent = '';
+
+            code.textContent = 'Loading…';
+
+            pre.appendChild(code);
+
+            var xhr = new XMLHttpRequest();
+
+            xhr.open('GET', src, true);
+
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState == 4) {
+
+                    if (xhr.status < 400 && xhr.responseText) {
+                        code.textContent = xhr.responseText;
+
+                        Prism.highlightElement(code);
+                    }
+                    else if (xhr.status >= 400) {
+                        code.textContent = '✖ Error ' + xhr.status + ' while fetching file: ' + xhr.statusText;
+                    }
+                    else {
+                        code.textContent = '✖ Error: File does not exist or is empty';
+                    }
+                }
+            };
+
+            xhr.send(null);
+        });
+    }
+
+    $(document).ready(function(){
+        loadExternalCodeSnippets();
+    });
+    $('#source-view').on('shown', function () {
+        loadExternalCodeSnippets();
+    })
+</script>
+
+    <link rel="shortcut icon" href="../images/favicon.ico"/>
+    <link rel="apple-touch-icon" href="../images/apple-touch-icon.png"/>
+    <link rel="apple-touch-icon" sizes="72x72" href="../images/apple-touch-icon-72x72.png"/>
+    <link rel="apple-touch-icon" sizes="114x114" href="../images/apple-touch-icon-114x114.png"/>
+</head>
+<body>
+
+<div class="navbar navbar-fixed-top">
+    <div class="navbar-inner">
+        <div class="container">
+            <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+                <i class="icon-ellipsis-vertical"></i>
+            </a>
+            <a class="brand" href="../index.html">API Documentation</a>
+
+            <div class="nav-collapse">
+                <ul class="nav pull-right">
+                                        <li class="dropdown">
+                        <a href="../index.html" class="dropdown-toggle" data-toggle="dropdown">
+                            API Documentation <b class="caret"></b>
+                        </a>
+                        <ul class="dropdown-menu">
+                                                        <li><a href="../namespaces/hymie.html">\hymie</a></li>
+                                                    </ul>
+                    </li>
+                                        <li class="dropdown" id="charts-menu">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                            Charts <b class="caret"></b>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <a href="../graphs/class.html">
+                                    <i class="icon-list-alt"></i>&#160;Class hierarchy diagram
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="dropdown" id="reports-menu">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                            Reports <b class="caret"></b>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <a href="../reports/errors.html">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <i class="icon-list-alt"></i>&#160;Errors <span class="label label-info pull-right">230</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="../reports/markers.html">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <i class="icon-list-alt"></i>&#160;Markers <span class="label label-info pull-right">2</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="../reports/deprecated.html">
+                                                                                                            <i class="icon-list-alt"></i>&#160;Deprecated <span class="label label-info pull-right">0</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <!--<div class="go_to_top">-->
+    <!--<a href="#___" style="color: inherit">Back to top&#160;&#160;<i class="icon-upload icon-white"></i></a>-->
+    <!--</div>-->
+</div>
+
+<div id="___" class="container-fluid">
+        <section class="row-fluid">
+        <div class="span2 sidebar">
+                                <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle " data-toggle="collapse" data-target="#namespace-907366282"></a>
+                                <a href="../namespaces/default.html" style="margin-left: 30px; padding-left: 0">\</a>
+            </div>
+            <div id="namespace-907366282" class="accordion-body collapse in">
+                <div class="accordion-inner">
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1279473222"></a>
+                                <a href="../namespaces/hymie.html" style="margin-left: 30px; padding-left: 0">hymie</a>
+            </div>
+            <div id="namespace-1279473222" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1501759029"></a>
+                                <a href="../namespaces/hymie.annotation.html" style="margin-left: 30px; padding-left: 0">annotation</a>
+            </div>
+            <div id="namespace-1501759029" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                    
+                    <ul>
+                                                                                                    <li class="class"><a href="../classes/hymie.annotation.AnnotationException.html">AnnotationException</a></li>
+                                                    <li class="class"><a href="../classes/hymie.annotation.RouterMapping.html">RouterMapping</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-22123380"></a>
+                                <a href="../namespaces/hymie.cache.html" style="margin-left: 30px; padding-left: 0">cache</a>
+            </div>
+            <div id="namespace-22123380" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                    
+                    <ul>
+                                                                                                    <li class="class"><a href="../classes/hymie.cache.ArrayCache.html">ArrayCache</a></li>
+                                                    <li class="class"><a href="../classes/hymie.cache.Cache.html">Cache</a></li>
+                                                    <li class="class"><a href="../classes/hymie.cache.NullCache.html">NullCache</a></li>
+                                                    <li class="class"><a href="../classes/hymie.cache.Psr6Adapter.html">Psr6Adapter</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1058865795"></a>
+                                <a href="../namespaces/hymie.exception.html" style="margin-left: 30px; padding-left: 0">exception</a>
+            </div>
+            <div id="namespace-1058865795" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                    
+                    <ul>
+                                                                                                    <li class="class"><a href="../classes/hymie.exception.ExceptionHandler.html">ExceptionHandler</a></li>
+                                                    <li class="class"><a href="../classes/hymie.exception.hymieException.html">hymieException</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-103806330"></a>
+                                <a href="../namespaces/hymie.filter.html" style="margin-left: 30px; padding-left: 0">filter</a>
+            </div>
+            <div id="namespace-103806330" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                    
+                    <ul>
+                                                                                                    <li class="class"><a href="../classes/hymie.filter.Filter.html">Filter</a></li>
+                                                    <li class="class"><a href="../classes/hymie.filter.FilterChain.html">FilterChain</a></li>
+                                                    <li class="class"><a href="../classes/hymie.filter.FilterException.html">FilterException</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1575220427"></a>
+                                <a href="../namespaces/hymie.pager.html" style="margin-left: 30px; padding-left: 0">pager</a>
+            </div>
+            <div id="namespace-1575220427" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1014506230"></a>
+                                <a href="../namespaces/hymie.pager.adapter.html" style="margin-left: 30px; padding-left: 0">adapter</a>
+            </div>
+            <div id="namespace-1014506230" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1652762065"></a>
+                                <a href="../namespaces/hymie.pager.adapter.dialect.html" style="margin-left: 30px; padding-left: 0">dialect</a>
+            </div>
+            <div id="namespace-1652762065" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                    
+                    <ul>
+                                                                                                    <li class="class"><a href="../classes/hymie.pager.adapter.dialect.AbstractPdoDialect.html">AbstractPdoDialect</a></li>
+                                                    <li class="class"><a href="../classes/hymie.pager.adapter.dialect.MysqlPdoDialect.html">MysqlPdoDialect</a></li>
+                                                    <li class="class"><a href="../classes/hymie.pager.adapter.dialect.OciPdoDialect.html">OciPdoDialect</a></li>
+                                                    <li class="class"><a href="../classes/hymie.pager.adapter.dialect.PgsqlPdoDialect.html">PgsqlPdoDialect</a></li>
+                                                    <li class="class"><a href="../classes/hymie.pager.adapter.dialect.SqlsrvPdoDialect.html">SqlsrvPdoDialect</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                    
+                    <ul>
+                                                    <li class="interface"><a href="../classes/hymie.pager.adapter.PagerAdapterInterface.html">PagerAdapterInterface</a></li>
+                                                                                                    <li class="class"><a href="../classes/hymie.pager.adapter.MedooPagerAdapter.html">MedooPagerAdapter</a></li>
+                                                    <li class="class"><a href="../classes/hymie.pager.adapter.PdoPagerAdapter.html">PdoPagerAdapter</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                    
+                    <ul>
+                                                                                                    <li class="class"><a href="../classes/hymie.pager.Pager.html">Pager</a></li>
+                                                    <li class="class"><a href="../classes/hymie.pager.PagerException.html">PagerException</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-881117739"></a>
+                                <a href="../namespaces/hymie.router.html" style="margin-left: 30px; padding-left: 0">router</a>
+            </div>
+            <div id="namespace-881117739" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-762257048"></a>
+                                <a href="../namespaces/hymie.router.source.html" style="margin-left: 30px; padding-left: 0">source</a>
+            </div>
+            <div id="namespace-762257048" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                    
+                    <ul>
+                                                                                                    <li class="class"><a href="../classes/hymie.router.source.ConfigedRouterSource.html">ConfigedRouterSource</a></li>
+                                                    <li class="class"><a href="../classes/hymie.router.source.RouterSource.html">RouterSource</a></li>
+                                                    <li class="class"><a href="../classes/hymie.router.source.ScanedRouterSource.html">ScanedRouterSource</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                    
+                    <ul>
+                                                                                                    <li class="class"><a href="../classes/hymie.router.Router.html">Router</a></li>
+                                                    <li class="class"><a href="../classes/hymie.router.RouterDefinitionException.html">RouterDefinitionException</a></li>
+                                                    <li class="class"><a href="../classes/hymie.router.RouterException.html">RouterException</a></li>
+                                                    <li class="class"><a href="../classes/hymie.router.RouterInfoHolder.html">RouterInfoHolder</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1350085340"></a>
+                                <a href="../namespaces/hymie.security.html" style="margin-left: 30px; padding-left: 0">security</a>
+            </div>
+            <div id="namespace-1350085340" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                    
+                    <ul>
+                                                                                                    <li class="class"><a href="../classes/hymie.security.Xss.html">Xss</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-767890282"></a>
+                                <a href="../namespaces/hymie.session.html" style="margin-left: 30px; padding-left: 0">session</a>
+            </div>
+            <div id="namespace-767890282" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                    
+                    <ul>
+                                                                                                    <li class="class"><a href="../classes/hymie.session.RedisSession.html">RedisSession</a></li>
+                                                    <li class="class"><a href="../classes/hymie.session.SessionException.html">SessionException</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-874500792"></a>
+                                <a href="../namespaces/hymie.traits.html" style="margin-left: 30px; padding-left: 0">traits</a>
+            </div>
+            <div id="namespace-874500792" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                    
+                    <ul>
+                                                                            <li class="trait"><a href="../classes/hymie.traits.Singleton.html">Singleton</a></li>
+                                                                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-845504800"></a>
+                                <a href="../namespaces/hymie.upload.html" style="margin-left: 30px; padding-left: 0">upload</a>
+            </div>
+            <div id="namespace-845504800" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                    
+                    <ul>
+                                                                                                    <li class="class"><a href="../classes/hymie.upload.FileUpload.html">FileUpload</a></li>
+                                                    <li class="class"><a href="../classes/hymie.upload.QiniuUpload.html">QiniuUpload</a></li>
+                                                    <li class="class"><a href="../classes/hymie.upload.Upload.html">Upload</a></li>
+                                                    <li class="class"><a href="../classes/hymie.upload.UploadException.html">UploadException</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-177730275"></a>
+                                <a href="../namespaces/hymie.view.html" style="margin-left: 30px; padding-left: 0">view</a>
+            </div>
+            <div id="namespace-177730275" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                    
+                    <ul>
+                                                                                                    <li class="class"><a href="../classes/hymie.view.JsonView.html">JsonView</a></li>
+                                                    <li class="class"><a href="../classes/hymie.view.PHPView.html">PHPView</a></li>
+                                                    <li class="class"><a href="../classes/hymie.view.TwigView.html">TwigView</a></li>
+                                                    <li class="class"><a href="../classes/hymie.view.View.html">View</a></li>
+                                                    <li class="class"><a href="../classes/hymie.view.ViewException.html">ViewException</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                    
+                    <ul>
+                                                                                                    <li class="class"><a href="../classes/hymie.Application.html">Application</a></li>
+                                                    <li class="class"><a href="../classes/hymie.Config.html">Config</a></li>
+                                                    <li class="class"><a href="../classes/hymie.Loader.html">Loader</a></li>
+                                                    <li class="class"><a href="../classes/hymie.Logger.html">Logger</a></li>
+                                                    <li class="class"><a href="../classes/hymie.Request.html">Request</a></li>
+                                                    <li class="class"><a href="../classes/hymie.Result.html">Result</a></li>
+                                                    <li class="class"><a href="../classes/hymie.Url.html">Url</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                    
+                    <ul>
+                                                                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+        </div>
+    </section>
+    <section class="row-fluid">
+        <div class="span10 offset2">
+            <div class="row-fluid">
+                <div class="span8 content class">
+                    <nav>
+                                                <a href="../namespaces/hymie.router.source.html">\hymie\router\source</a> <i class="icon-level-up"></i>
+                                            </nav>
+                    <a href="#source-view" role="button" class="pull-right btn" data-toggle="modal"><i class="icon-code"></i></a>
+
+                    <h1><small>\hymie\router\source</small>ScanedRouterSource</h1>
+                    <p><em>扫描模块下所有类(PSR-4 规范的类)，根据 Annotation RouterMapping 定义生成控制器配置。</em></p>
+                    <p>正式环境使用这个类时建议一定要使用缓存，因为存在大量遍历目录，遍历反射类方法等操作</p>
+<p>这个类使用 doctrine-annotation 处理注解</p>
+                    
+                                        
+                    <section id="summary">
+                        <h2>Summary</h2>
+                        <section class="row-fluid heading">
+                            <section class="span4">
+                                <a href="#methods">Methods</a>
+                            </section>
+                            <section class="span4">
+                                <a href="#properties">Properties</a>
+                            </section>
+                            <section class="span4">
+                                <a href="#constants">Constants</a>
+                            </section>
+                        </section>
+                        <section class="row-fluid public">
+                            <section class="span4">
+                                                                    <a href="../classes/hymie.router.source.ScanedRouterSource.html#method_getRouterInfo" class="">getRouterInfo()</a><br />
+                                                            </section>
+                            <section class="span4">
+                                                                    <em>No public properties found</em>
+                                                            </section>
+                            <section class="span4">
+                                                                    <em>No constants found</em>
+                                                            </section>
+                        </section>
+                        <section class="row-fluid protected">
+                            <section class="span4">
+                                                                    <a href="../classes/hymie.router.source.RouterSource.html#method_createRouterInfoItem" class="">createRouterInfoItem()</a><br />
+                                                            </section>
+                            <section class="span4">
+                                                                    <em>No protected properties found</em>
+                                                            </section>
+                            <section class="span4">
+                                <em>N/A</em>
+                            </section>
+                        </section>
+                        <section class="row-fluid private">
+                            <section class="span4">
+                                                                    <a href="../classes/hymie.router.source.ScanedRouterSource.html#method_requireClassFiles" class="">requireClassFiles()</a><br />
+                                                                    <a href="../classes/hymie.router.source.ScanedRouterSource.html#method_getClassPathValue" class="">getClassPathValue()</a><br />
+                                                                    <a href="../classes/hymie.router.source.ScanedRouterSource.html#method_createClassRouterInfo" class="">createClassRouterInfo()</a><br />
+                                                                    <a href="../classes/hymie.router.source.ScanedRouterSource.html#method_processClassesAnnotation" class="">processClassesAnnotation()</a><br />
+                                                            </section>
+                            <section class="span4">
+                                                                    <em>No private properties found</em>
+                                                            </section>
+                            <section class="span4">
+                                <em>N/A</em>
+                            </section>
+                        </section>
+                    </section>
+                </div>
+                <aside class="span4 detailsbar">
+                                        
+                    
+                    <dl>
+                        <dt>File</dt>
+                            <dd><a href="../files/router.source.ScanedRouterSource.html"><div class="path-wrapper">router/source/ScanedRouterSource.php</div></a></dd>
+                                                <dt>Package</dt>
+                            <dd><div class="namespace-wrapper">Default</div></dd>
+                                                <dt>Class hierarchy</dt>
+                            <dd class="hierarchy">
+                                                                                                                                                                                                                                                                                                
+                                        <div class="namespace-wrapper"><a href="../classes/hymie.router.source.RouterSource.html">\hymie\router\source\RouterSource</a></div>
+                                                                                                    <div class="namespace-wrapper">\hymie\router\source\ScanedRouterSource</div>
+                            </dd>
+
+                        
+                        
+                        
+                                                                            <dt>See also</dt>
+                                                                                        <dd><a href="../classes/hymie.annotation.RouterMapping.html"><span class="namespace-wrapper">\hymie\annotation\RouterMapping</span></a></dd>
+                                                            <dd><a href=""><span class="namespace-wrapper">https://www.doctrine-project.org/projects/annotations.html</span></a></dd>
+                                                    
+                                                                        </dl>
+                    <h2>Tags</h2>
+                    <table class="table table-condensed">
+                                            <tr><td colspan="2"><em>None found</em></td></tr>
+                                        </table>
+                </aside>
+            </div>
+
+                        
+                        
+                                    <a id="methods" name="methods"></a>
+            <div class="row-fluid">
+                <div class="span8 content class"><h2>Methods</h2></div>
+                <aside class="span4 detailsbar"></aside>
+            </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="method_getRouterInfo" name="method_getRouterInfo" class="anchor"></a>
+            <article class="method">
+                <h3 class="public ">getRouterInfo()</h3>
+                <a href="#source-view" role="button" class="pull-right btn" data-toggle="modal" style="font-size: 1.1em; padding: 9px 14px"><i class="icon-code"></i></a>
+                <pre class="signature" style="margin-right: 54px;">getRouterInfo(array  <span class="argument">$modules</span>) : array</pre>
+                <p><em>根据传入的模块名读取路由配置，返回数组，格式为</em></p>
+                <p>[
+0,
+&quot;pathRegex&quot; =&gt; [
+'module&quot; =&gt; &quot;moduleName&quot;,
+&quot;controllerDef&quot; =&gt; [&quot;controllerClassName&quot;, &quot;controllerMethodName&quot;]
+// or
+&quot;controllerDef&quot; =&gt; &quot;controllerClassName:controllerMethodName&quot;
+}
+]</p>
+<p>或者</p>
+<p>[
+'path_regex' =&gt; ['controller_classname', 'method_name']
+]</p>
+
+                                    <h4>Parameters</h4>
+                    <table class="table table-condensed table-hover">
+                                                    <tr>
+                                <td>array</td>
+                                <td>$modules </td>
+                                <td><p>模块数组</p></td>
+                            </tr>
+                                            </table>
+                
+                
+                                    <h4>Returns</h4>
+                    array
+                                    				
+                            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                                                            <dl>
+                                                                                            <dt>See also</dt>
+                                                                <dd><a href=""><span class="namespace-wrapper">\hymie\router\source\RouterSrouce::getRouterInfo</span></a></dd>
+                                                                </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="method_createRouterInfoItem" name="method_createRouterInfoItem" class="anchor"></a>
+            <article class="method">
+                <h3 class="protected ">createRouterInfoItem()</h3>
+                <a href="#source-view" role="button" class="pull-right btn" data-toggle="modal" style="font-size: 1.1em; padding: 9px 14px"><i class="icon-code"></i></a>
+                <pre class="signature" style="margin-right: 54px;">createRouterInfoItem(array  <span class="argument">$routerInfo</span>, string  <span class="argument">$module</span>, string  <span class="argument">$path</span>, string|array  <span class="argument">$controllerInfo</span>) : array</pre>
+                <p><em>创建路由数组项目，创建前会检查路由是否已定义，如已定义会输出 warning 级别日志后替换原项目。</em></p>
+                
+
+                                    <h4>Parameters</h4>
+                    <table class="table table-condensed table-hover">
+                                                    <tr>
+                                <td>array</td>
+                                <td>$routerInfo </td>
+                                <td></td>
+                            </tr>
+                                                    <tr>
+                                <td>string</td>
+                                <td>$module </td>
+                                <td></td>
+                            </tr>
+                                                    <tr>
+                                <td>string</td>
+                                <td>$path </td>
+                                <td></td>
+                            </tr>
+                                                    <tr>
+                                <td>string|array</td>
+                                <td>$controllerInfo </td>
+                                <td></td>
+                            </tr>
+                                            </table>
+                
+                
+                                    <h4>Returns</h4>
+                    array
+                                    				
+                            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                                                            <dl>
+                                                    <dt>Inherited from</dt>
+                    <dd><a href="../classes/hymie.router.source.RouterSource.html"><div class="path-wrapper">\hymie\router\source\RouterSource</div></a></dd>
+                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="method_requireClassFiles" name="method_requireClassFiles" class="anchor"></a>
+            <article class="method">
+                <h3 class="private ">requireClassFiles()</h3>
+                <a href="#source-view" role="button" class="pull-right btn" data-toggle="modal" style="font-size: 1.1em; padding: 9px 14px"><i class="icon-code"></i></a>
+                <pre class="signature" style="margin-right: 54px;">requireClassFiles(string  <span class="argument">$module</span>) : void</pre>
+                <p><em>递归遍历模块目录，取得所有符合 PSR-4 标准的类（文件名第一个字母大写，其他部分目前不好判断是否符合规范）并包含该类</em></p>
+                
+
+                                    <h4>Parameters</h4>
+                    <table class="table table-condensed table-hover">
+                                                    <tr>
+                                <td>string</td>
+                                <td>$module </td>
+                                <td><p>模块名</p></td>
+                            </tr>
+                                            </table>
+                
+                
+                				
+                            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                                                            <dl>
+                                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="method_getClassPathValue" name="method_getClassPathValue" class="anchor"></a>
+            <article class="method">
+                <h3 class="private ">getClassPathValue()</h3>
+                <a href="#source-view" role="button" class="pull-right btn" data-toggle="modal" style="font-size: 1.1em; padding: 9px 14px"><i class="icon-code"></i></a>
+                <pre class="signature" style="margin-right: 54px;">getClassPathValue(\hymie\router\source\Doctrine\Common\Annotations\AnnotationReader  <span class="argument">$reader</span>, \ReflectionClass  <span class="argument">$reflectionClass</span>) : string</pre>
+                <p><em>如果类上注解了 RouterMapping 则获取注解内容，否则返回空字符</em></p>
+                
+
+                                    <h4>Parameters</h4>
+                    <table class="table table-condensed table-hover">
+                                                    <tr>
+                                <td>\hymie\router\source\Doctrine\Common\Annotations\AnnotationReader</td>
+                                <td>$reader </td>
+                                <td><p>注解 reader</p></td>
+                            </tr>
+                                                    <tr>
+                                <td>\ReflectionClass</td>
+                                <td>$reflectionClass </td>
+                                <td><p>反射类实例</p></td>
+                            </tr>
+                                            </table>
+                
+                
+                                    <h4>Returns</h4>
+                    string
+                                            &mdash; <p>如果注解了 RouterMapping 则返回其值，否则返回''</p>
+                                    				
+                            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                                                            <dl>
+                                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="method_createClassRouterInfo" name="method_createClassRouterInfo" class="anchor"></a>
+            <article class="method">
+                <h3 class="private ">createClassRouterInfo()</h3>
+                <a href="#source-view" role="button" class="pull-right btn" data-toggle="modal" style="font-size: 1.1em; padding: 9px 14px"><i class="icon-code"></i></a>
+                <pre class="signature" style="margin-right: 54px;">createClassRouterInfo(string  <span class="argument">$module</span>, \hymie\router\source\Doctrine\Common\Annotations\AnnotationReader  <span class="argument">$reader</span>, \ReflectionClass  <span class="argument">$reflectionClass</span>, string  <span class="argument">$classPathValue</span>) : array</pre>
+                <p><em>创建具体类的路由控制数组，会遍历类下所有 public 方法。</em></p>
+                <p>如果方法注解了 @RouterMapping(value='...') 那么获取值，并与 classPathValue 组合成路由配置。</p>
+<p>例外：名为 index 的方法是类的默认路由，该方法上无需再进行注解，如果类注解了路由，那么该方法会默认匹配到类路由上。</p>
+
+                                    <h4>Parameters</h4>
+                    <table class="table table-condensed table-hover">
+                                                    <tr>
+                                <td>string</td>
+                                <td>$module </td>
+                                <td></td>
+                            </tr>
+                                                    <tr>
+                                <td>\hymie\router\source\Doctrine\Common\Annotations\AnnotationReader</td>
+                                <td>$reader </td>
+                                <td></td>
+                            </tr>
+                                                    <tr>
+                                <td>\ReflectionClass</td>
+                                <td>$reflectionClass </td>
+                                <td></td>
+                            </tr>
+                                                    <tr>
+                                <td>string</td>
+                                <td>$classPathValue </td>
+                                <td><p>如果类上注解了路由则为路由信息，否则为''</p></td>
+                            </tr>
+                                            </table>
+                
+                
+                                    <h4>Returns</h4>
+                    array
+                                    				
+                            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                                                            <dl>
+                                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="method_processClassesAnnotation" name="method_processClassesAnnotation" class="anchor"></a>
+            <article class="method">
+                <h3 class="private ">processClassesAnnotation()</h3>
+                <a href="#source-view" role="button" class="pull-right btn" data-toggle="modal" style="font-size: 1.1em; padding: 9px 14px"><i class="icon-code"></i></a>
+                <pre class="signature" style="margin-right: 54px;">processClassesAnnotation(string  <span class="argument">$module</span>, array  <span class="argument">$classes</span>) : array</pre>
+                <p><em>循环处理所有类的路由注解</em></p>
+                
+
+                                    <h4>Parameters</h4>
+                    <table class="table table-condensed table-hover">
+                                                    <tr>
+                                <td>string</td>
+                                <td>$module </td>
+                                <td><p>模块名</p></td>
+                            </tr>
+                                                    <tr>
+                                <td>array</td>
+                                <td>$classes </td>
+                                <td><p>类数组</p></td>
+                            </tr>
+                                            </table>
+                
+                
+                                    <h4>Returns</h4>
+                    array
+                                    				
+                            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                                                            <dl>
+                                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    </div>
+    </section>
+
+    <div id="source-view" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="source-view-label" aria-hidden="true">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+            <h3 id="source-view-label">ScanedRouterSource.php</h3>
+        </div>
+        <div class="modal-body">
+            <pre data-src="../files/router/source/ScanedRouterSource.php.txt" class="language-php line-numbers"></pre>
+        </div>
+    </div>
+
+    <footer class="row-fluid">
+        <section class="span10 offset2">
+            <section class="row-fluid">
+                <section class="span10 offset1">
+                    <section class="row-fluid footer-sections">
+                        <section class="span4">
+                                                        <h1><i class="icon-code"></i></h1>
+                            <div>
+                                <ul>
+                                                                            <li><a href="../namespaces/hymie.html">\hymie</a></li>
+                                                                    </ul>
+                            </div>
+                        </section>
+                        <section class="span4">
+                                                        <h1><i class="icon-bar-chart"></i></h1>
+                            <div>
+                                <ul>
+                                    <li><a href="../graphs/class.html">Class Hierarchy Diagram</a></li>
+                                </ul>
+                            </div>
+                        </section>
+                        <section class="span4">
+                                                        <h1><i class="icon-pushpin"></i></h1>
+                            <div>
+                                <ul>
+                                    <li><a href="../reports/errors.html">Errors</a></li>
+                                    <li><a href="../reports/markers.html">Markers</a></li>
+                                </ul>
+                            </div>
+                        </section>
+                    </section>
+                </section>
+            </section>
+            <section class="row-fluid">
+                <section class="span10 offset1">
+                    <hr />
+                    Documentation is powered by <a href="http://www.phpdoc.org/">phpDocumentor </a> and authored
+                    on August 21st, 2019 at 05:50.
+                </section>
+            </section>
+        </section>
+    </footer>
+</div>
+
+</body>
+</html>

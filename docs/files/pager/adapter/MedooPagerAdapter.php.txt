@@ -1,4 +1,5 @@
 <?PHP
+
 /**
  * Project:       Hymie PHP MVC framework
  * File:          MedooPagerAdapter.php
@@ -9,7 +10,7 @@
  * Composer:      https://packagist.org/packages/hymie/mvc
  * 
  * @author:       mahaixing(mahaixing@gmail.com)
- * @license:      Apache License 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+ * @license:      MIT
  */
 
 namespace hymie\pager\adapter;
@@ -44,7 +45,7 @@ class MedooPagerAdapter implements PagerAdapterInterface
         $this->where = $where;
     }
 
-    public function getDataCount() 
+    public function getDataCount()
     {
         if ($this->where == null) {
             return $this->medoo->count($this->tableOrSql, $this->joinOrColumnsOrMap, $this->columns);
@@ -56,7 +57,7 @@ class MedooPagerAdapter implements PagerAdapterInterface
     public function getData($page, $pageSize)
     {
         if ($this->where == null) {
-            $where = ['LIMIT' => [$page, $pageSize]];
+            $where = ['LIMIT' => [$page * $pageSize, $pageSize]];
             return $this->medoo->select($this->tableOrSql, $this->joinOrColumnsOrMap, $where);
         } else {
             // don't care 3721, set value.
@@ -65,3 +66,4 @@ class MedooPagerAdapter implements PagerAdapterInterface
         }
     }
 }
+

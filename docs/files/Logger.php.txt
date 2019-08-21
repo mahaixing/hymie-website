@@ -10,7 +10,7 @@
  * Composer:      https://packagist.org/packages/hymie/mvc
  * 
  * @author:       mahaixing(mahaixing@gmail.com)
- * @license:      Apache License 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+ * @license:      MIT
  */
 
 namespace hymie;
@@ -50,7 +50,7 @@ class Logger extends AbstractLogger
             $format = get_array_item($config, 'format', ["[%datetime%] %level_name% %channel%: %message% - %context% \n", "Y-m-d H:i:s"]);
 
             $formatter = new \Monolog\Formatter\LineFormatter($format[0], $format[1]);
-            $handler = new \Monolog\Handler\RotatingFileHandler($path, $level, $maxFiles);
+            $handler = new \Monolog\Handler\RotatingFileHandler($path, $maxFiles, $level);
             $handler->setFormatter($formatter);
 
             $this->logger = new \Monolog\Logger(strtoupper($config['name']));

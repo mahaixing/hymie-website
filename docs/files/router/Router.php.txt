@@ -3,26 +3,21 @@
 /**
  * Project:       Hymie PHP MVC framework
  * File:          Router.php
- * Created Date:  2019-08-11
- *
+ * Created Date:  2019-08-20
+ * 
  * Github:        https://github.com/mahaixing/hymie-mvc
  * Gitee:         https://gitee.com/mahaixing/hymie-mvc
  * Composer:      https://packagist.org/packages/hymie/mvc
- *
+ * 
  * @author:       mahaixing(mahaixing@gmail.com)
- * @license:      Apache License 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+ * @license:      MIT
  */
 
 namespace hymie\router;
 
-/**
- * 路由处理类，根据 router.php 内配置的 $routers 数组定义的
- * 路由与控制器对应关系，查找控制器对象。
- *
- * 路由配置文件 route.php 定义在每个模块的根目录下面。
- *
- * 路由定义可以使用分组，分组的数据会作为参数按照分组顺序传递给控制器对应方法入参，
- */
+use hymie\router\source\ConfigedRouterSource;
+use hymie\router\source\ScanedRouterSource;
+
 class Router
 {
     /**
@@ -33,18 +28,23 @@ class Router
     /**
      * 路由信息
      *
-     * @var \hymie\router\ControllerInfoHolder
+     * @var \hymie\router\RouterInfoHolder
      */
-    private $infoHolder;
+    protected $infoHolder;
 
-    /**
-     * 构造函数
-     *
-     * @param array $modules 模块名
-     */
-    public function __construct($modules)
+    public function __construct(&$modules)
     {
-        $this->infoHolder = new ControllerInfoHolder($modules);
+        $this->infoHolder = new RouterInfoHolder($modules);
+
+        if (!$this->infoHolder->hasRouterInfo()) {
+            $routerSources = [
+                new ConfigedRouterSource(),
+                new ScanedRouterSource()
+            ];
+            foreach ($routerSources as $source) {
+                $this->infoHolder->addRouterInfo($source->getRouterInfo($modules));
+            }
+        }
     }
 
     /**
@@ -53,7 +53,7 @@ class Router
      * @param \ReflectionParameter $param
      * @return void
      */
-    private function getParameterDefaultValue($param)
+    protected function getParameterDefaultValue($param)
     {
         if ($param->isDefaultValueAvailable()) {
             return $param->getDefaultValue();
@@ -80,7 +80,7 @@ class Router
      * @param array $matches 匹配的参数
      * @return array
      */
-    private function getControllerMethodAndParams($module, $controllerName, $method, $matches)
+    protected function getControllerMethodAndParams($module, $controllerName, $method, $matches)
     {
         $request = \hymie\Request::getInstance();
         $config = \hymie\Config::getInstance()->get('controller');
@@ -137,7 +137,7 @@ class Router
      * @param string|array $controllerDef
      * @return array
      */
-    private function processController($controllerDef)
+    protected function processController($controllerDef)
     {
         $result = null;
         if (is_string($controllerDef)) {
@@ -159,7 +159,15 @@ class Router
     /**
      * 根据路由配置获取控制器，控制器方法的 Reflection 实例。
      *
-     * 如果找不到控制器则返回 404 页面
+     * 如果找不到控制器则抛出 RouterException，最终会触发 404 页面。
+     * 
+     * 返回的控制器信息数组格式为:
+     * 
+     * array(
+     *      'module'        => $module,            // 模块名
+     *      'controller'    => $controller,        // 控制器对象
+     *      'method'        => $reflectMethod,     // 方法放射对象
+     *      'params'        => $paramsArray);      // 参数数组
      *
      * @return array
      */

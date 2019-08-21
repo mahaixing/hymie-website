@@ -1,0 +1,61 @@
+<?PHP
+
+/**
+ * Project:       Hymie PHP MVC framework
+ * File:          Router.php
+ * Created Date:  2019-08-11
+ *
+ * Github:        https://github.com/mahaixing/hymie-mvc
+ * Gitee:         https://gitee.com/mahaixing/hymie-mvc
+ * Composer:      https://packagist.org/packages/hymie/mvc
+ *
+ * @author:       mahaixing(mahaixing@gmail.com)
+ * @license:      MIT
+ */
+
+namespace hymie\router\source;
+
+/**
+ * 路由处理类，根据 router.php 内配置的 $routers 数组定义的
+ * 路由与控制器对应关系，查找控制器对象。
+ *
+ * 路由配置文件 route.php 定义在每个模块的根目录下面。
+ *
+ * 路由定义可以使用分组，分组的数据会作为参数按照分组顺序传递给控制器对应方法入参，
+ */
+class ConfigedRouterSource extends RouterSource
+{
+    /**
+     * 默认的路由文件名
+     */
+    const ROUTE_FILE = 'config.router.php';
+
+    /**
+     * 读取路由配置，当前类的这个方法是从配置文件中读取路由配置。
+     *
+     * @param array $modules
+     * @return array
+     */
+    public function getRouterInfo($modules)
+    {
+        $routers = [];
+        foreach ($modules as $module) {
+            $routerFile = APP_ROOT . DIRECTORY_SEPARATOR . $module . DIRECTORY_SEPARATOR . self::ROUTE_FILE;
+
+            if (!file_exists($routerFile)) {
+                continue;
+            }
+            $moduleRoutes = require $routerFile;
+            if (!is_array($moduleRoutes) || count($moduleRoutes) == 0) {
+                continue;
+            }
+
+            foreach ($moduleRoutes as $pathRegex => $controllerDef) {
+                $routers = $routers + $this->createRouterInfoItem($routers, $module, $pathRegex, $controllerDef);
+            }
+        }
+
+        return $routers;
+    }
+}
+

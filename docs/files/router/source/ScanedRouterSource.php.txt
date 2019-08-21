@@ -1,0 +1,182 @@
+<?PHP
+
+/**
+ * Project:       Hymie PHP MVC framework
+ * File:          ScanedRouterSource.php
+ * Created Date:  2019-08-21
+ * 
+ * Github:        https://github.com/mahaixing/hymie-mvc
+ * Gitee:         https://gitee.com/mahaixing/hymie-mvc
+ * Composer:      https://packagist.org/packages/hymie/mvc
+ * 
+ * @author:       mahaixing(mahaixing@gmail.com)
+ * @license:      MIT License
+ */
+
+namespace hymie\router\source;
+
+use Doctrine\Common\Annotations\AnnotationReader;
+use hymie\annotation\RouterMapping;
+
+/**
+ * 扫描模块下所有类(PSR-4 规范的类)，根据 Annotation RouterMapping 定义生成控制器配置。
+ *
+ * 正式环境使用这个类时建议一定要使用缓存，因为存在大量遍历目录，遍历反射类方法等操作
+ * 
+ * 这个类使用 doctrine-annotation 处理注解
+ * 
+ * @see \hymie\annotation\RouterMapping 
+ * @see https://www.doctrine-project.org/projects/annotations.html
+ */
+class ScanedRouterSource extends RouterSource
+{
+
+    /**
+     * @see \hymie\router\source\RouterSrouce::getRouterInfo
+     *
+     * @param array $modules 模块数组
+     * @return array
+     */
+    public function getRouterInfo($modules)
+    {
+        $routerInfo = [];
+        foreach ($modules as $module) {
+            $oldDeclaredClasses = \get_declared_classes();
+            $this->requireClassFiles($module);
+            $newDeclaredClasses = \get_declared_classes();
+            $needProecessClasses = array_diff($newDeclaredClasses, $oldDeclaredClasses);
+            $routerInfo = array_merge($routerInfo, $this->processClassesAnnotation($module, $needProecessClasses));
+        }
+
+        return $routerInfo;
+    }
+
+    /**
+     * 递归遍历模块目录，取得所有符合 PSR-4 标准的类（文件名第一个字母大写，其他部分目前不好判断是否符合规范）并包含该类
+     *
+     * @param string $module 模块名
+     * @return void
+     */
+    private function requireClassFiles($module)
+    {
+        $directory = new \RecursiveDirectoryIterator(APP_ROOT . DIRECTORY_SEPARATOR . $module);
+        $iterator = new \RecursiveIteratorIterator($directory);
+        $regexIterator = new \RegexIterator($iterator, '#^[a-zA-Z0-9\.\/_\-\\\\]+\.php$#', \RegexIterator::MATCH);
+        foreach ($regexIterator as $path => $info) {
+            if (
+                $info->isFile() &&
+                $info->isReadable() &&
+                preg_match('/^[A-Z][a-zA-Z0-9]+.php$/', $info->getFilename()) === 1
+            ) {
+                require_once($path);
+            }
+        }
+    }
+
+    /**
+     * 如果类上注解了 RouterMapping 则获取注解内容，否则返回空字符
+     *
+     * @param Doctrine\Common\Annotations\AnnotationReader $reader 注解 reader 
+     * @param \ReflectionClass $reflectionClass 反射类实例
+     * @return string 如果注解了 RouterMapping 则返回其值，否则返回''
+     */
+    private function getClassPathValue($reader, $reflectionClass)
+    {
+        $classAnnotation = $reader->getClassAnnotation(
+            $reflectionClass,
+            RouterMapping::class
+        );
+
+        $pathValue = '';
+        if ($classAnnotation !== null) {
+            $pathValue = $classAnnotation->getValue();
+        }
+
+        return $pathValue;
+    }
+
+    /**
+     * 创建具体类的路由控制数组，会遍历类下所有 public 方法。
+     * 
+     * 如果方法注解了 @RouterMapping(value='...') 那么获取值，并与 classPathValue 组合成路由配置。
+     * 
+     * 例外：名为 index 的方法是类的默认路由，该方法上无需再进行注解，如果类注解了路由，那么该方法会默认匹配到类路由上。
+     *
+     * @param string $module
+     * @param Doctrine\Common\Annotations\AnnotationReader $reader
+     * @param \ReflectionClass $reflectionClass
+     * @param string $classPathValue 如果类上注解了路由则为路由信息，否则为''
+     * @return array
+     */
+    private function createClassRouterInfo($module, $reader, $reflectionClass, $classPathValue)
+    {
+        $publicMechods = $reflectionClass->getMethods(\ReflectionMethod::IS_PUBLIC);
+        $className = $reflectionClass->getName();
+        $routerInfo = [];
+        foreach ($publicMechods as $reflectionMethod) {
+            $methodName = $reflectionMethod->getName();
+
+            // index 默认匹配类路由配置
+            if (($classPathValue != '') && ($methodName === \hymie\router\Router::DEFAULT_METHOD)
+            ) {
+                $routerInfo = $routerInfo + $this->createRouterInfoItem($routerInfo, $module, $classPathValue, [$className, $methodName]);
+                continue;
+            }
+
+            $methodAnnotation = $reader->getMethodAnnotation(
+                $reflectionMethod,
+                RouterMapping::class
+            );
+
+            if ($methodAnnotation == null) {
+                continue;
+            }
+
+            $methodRouterInfo = $methodAnnotation->getValue();
+            // 如果 类注解的路由 为 /，那么就不重新拼字符串了以避免生成类似于 //xxx 的路由情况
+            $path = ($classPathValue == '/') ? $methodRouterInfo : $classPathValue . $methodRouterInfo;
+            $routerInfo = $routerInfo + $this->createRouterInfoItem($routerInfo, $module, $path, [$className, $methodName]);
+        }
+
+        return $routerInfo;
+    }
+
+    /**
+     * 循环处理所有类的路由注解
+     *
+     * @param string $module 模块名
+     * @param array $classes 类数组
+     * @return array
+     */
+    private function processClassesAnnotation($module, $classes)
+    {
+        $routerInfo = [];
+        foreach ($classes as $clazz) {
+            try {
+                $reflectionClass = new \ReflectionClass($clazz);
+                $reader = new AnnotationReader();
+
+                $classPathValue = $this->getClassPathValue($reader, $reflectionClass);
+                $classRouterInfo = $this->createClassRouterInfo($module, $reader, $reflectionClass, $classPathValue);
+                if (!empty($classRouterInfo)) {
+                    $routerInfo = array_merge($routerInfo, $classRouterInfo);
+                }
+            } catch (\InvalidArgumentException $e) {
+                throw new \hymie\annotation\AnnotationException(
+                    sprintf("router definition error, in class '%s', message is '%s'", $clazz, $e->getMessage()),
+                    0,
+                    $e
+                );
+            } catch (\ReflectionException $re) {
+                throw new \hymie\annotation\AnnotationException(
+                    sprintf("router definition error, in class '%s', message is '%s'", $clazz, $re->getMessage()),
+                    0,
+                    $e
+                );
+            }
+        }
+
+        return $routerInfo;
+    }
+}
+
