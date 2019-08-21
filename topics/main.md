@@ -308,11 +308,14 @@ Service 用来实现业务逻辑。控制数据库事务。Service 为遵循 PSR
       }
 
       /**
-        * @RouterMapping(value="/foo")
+        * @RouterMapping(value="/foo-(\d{1,3})")
         */
-      public function login()
+      public function login($number)
       {
-          // handle path '/other/foo"
+          // handle path '/other/foo-1" "/other/foo-123"
+          // $number = 1 or $number = 123
+
+          //could not handle '/ohter/foo-1234'
       }
   }
   ```

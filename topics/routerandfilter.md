@@ -64,7 +64,9 @@ return $router;
 
 框架支持通过注解的方式配置路由，在使用注解前需要先在控制器中引入注解类 `use hymie\annotation\RouterMapping;`
 
-注解定义的方法参考一下代码示例
+注解定义的方法参考以下代码示例
+
+**以下示例中 SomeController 类只有默认方法 index 因此路由映射使用正则不会产生影响**
 
   ```
     use hymie\annotation\RouterMapping;
@@ -82,27 +84,32 @@ return $router;
     }
   ```
 
-   ```
-    use hymie\annotation\RouterMapping;
-    
-    /**
-     * @RouterMapping(value="/other")
-     */
-    class SomeOtherController
-    {
-        public function index()
-        {
-           // handle path  '/other'
-        }
+**如果类中其他方法也映射路由，那么这个类上的路由映射一般作为目录分割用，在类路由配置使用正则表达式的时候要细致考虑 URL结构**
 
-        /**
-         * @RouterMapping(value="/foo")
-         */
-        public function login()
-        {
-            // handle path '/other/foo"
-        }
-    }
+  ```
+  use hymie\annotation\RouterMapping;
+
+  /**
+    * @RouterMapping(value="/other")
+    */
+  class SomeOtherController
+  {
+      public function index()
+      {
+          // handle path  '/other'
+      }
+
+      /**
+        * @RouterMapping(value="/foo-(\d{1,3})")
+        */
+      public function login($number)
+      {
+          // handle path '/other/foo-1" "/other/foo-123"
+          // $number = 1 or $number = 123
+
+          //could not handle '/ohter/foo-1234'
+      }
+  }
   ```
 > 如果类的方法需要注解，那么类上的注解一般作为 URL 目录区分用，在这种情况下需要慎重使用正则表达式。
 
