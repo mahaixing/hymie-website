@@ -11,6 +11,13 @@ Hymie PHPMVC 是一个轻量级 MVC 框架，实现中借鉴了 [webpy](http://w
 
 > 如果有改进建议或 BUG 反馈，请联系 <a href="mailto://mahaixing@gmail.com">mahaixing@gmail.com</a>
 
+## 变更历史
+
+| 版本号 | 说明 |
+| ----- | --- |
+| v1.0  | 实现MVC 框架、BeanFactory、路由、过滤器等功能 |
+| v1.1  | 实现通过注解方式配置路由 |
+
 ## 约定
 
 1. `web_root` 指的是 `web` 应用的主目录
