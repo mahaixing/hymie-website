@@ -2,6 +2,11 @@
 
 namespace web\controller;
 
+use hymie\annotation\RouterMapping;
+
+/**
+ * @RouterMapping(value="/(\w*)")
+ */
 class IndexController
 {
     public function index($topic = 'main')

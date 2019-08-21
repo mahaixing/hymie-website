@@ -1,12 +1,13 @@
+完整的手册请参考 [Hymie PHPMVC framework 手册](http://hymie.iautoo.cn/)
+
 Hymie PHPMVC 是一个轻量级 MVC 框架，实现中借鉴了 [webpy](http://webpy.org/) 的一些设计思路。Hymie 的目标是实现基本的 MVC 模式，规范化的开发目录结构约定，并且易于整合和使用第三方库、框架。Hymie 框架代码文件大小约为 270KB。
 
 框架遵循以下 PSR 标准:
 
-  1. `PSR-0` 
-  2. `PSR-2`
-  3. `PSR-4`
-  4. `PSR-6` 
-  5. `PSR-16` 
+  1. `PSR-2`
+  2. `PSR-4`
+  3. `PSR-6` 
+  4. `PSR-16` 
 
 > 这个帮助文档站点就是使用海米 PHPMVC 框架开发的，代码地址 <a href="https://github.com/mahaixing/hymie-website" target="_blank">Github</a> 或者 <a href="https://gitee.com/mahaixing/hymie-website" target="_blank">Gitee</a>
 
@@ -254,7 +255,7 @@ Service 用来实现业务逻辑。控制数据库事务。Service 为遵循 PSR
 
 控制器执行后可以返回 `\hymie\Result` 对象，`\hymie\Result` 对象支持链式调用，并且如果是 ajax 请求的话， json 视图会根据 `\hymie\Result` 对象组织 json 数据。
 
-如果控制器不返回 `\hymie\Result` 对象，那么控制器需要自行输出数据到浏览器或者使用 `R($to)` 函数跳转网页。
+如果控制器不反悔 `\hymie\Result` 对象，那么控制器需要自行输出数据到浏览器或者使用 `R($to)` 函数跳转网页。
 
 #### 3.2.7 URL 模式
 支持两种 URL 模式，PATHINFO 和 QueryString，在 `config.php` 中的 `url` 部分进行配置。`url` 配置会影响到 `\hymie\Url` 类生成链接的方式。
@@ -263,7 +264,67 @@ Service 用来实现业务逻辑。控制数据库事务。Service 为遵循 PSR
 
 > 注: 如果要生成 url_rewrite 的 url, 需要在配置文件的 `url` 部分设置 `url_rewrite` = true
 
-### 3.3 过滤器
+### 3.3 路由配置
+框架支持两种路由配置方式：
+1. 基于配置文件的路由配置  
+  ```
+    return array(
+      '/' => '[module_dir_name]\controller\IndexController:someMethod',
+
+      // 分页， 支持 
+      // http://example.com/index.php?g=/a/1/10 （第1页，每页10条）
+      // http://example.com/index.php?g=/a/1 （第1页，每页条数使用默认值10条）。
+      '/product/list/(\d+)(?:(?:/)(\d+))?' => ['mod1\controller\ProductController', 'list'],
+  */);
+  ```
+2. 基于注解的路由配置。
+  ```
+    use hymie\annotation\RouterMapping;
+    
+    /**
+     * @RouterMapping(value="/")
+     */
+    class SomeController
+    {
+        public function index()
+        {
+           // handle path  '/'
+        }
+
+        /**
+         * @RouterMapping(value="/login")
+         */
+        public function login()
+        {
+            // handle path '/login'
+        }
+    }
+  ```
+
+   ```
+    use hymie\annotation\RouterMapping;
+    
+    /**
+     * @RouterMapping(value="/other")
+     */
+    class SomeOtherController
+    {
+        public function index()
+        {
+           // handle path  '/other'
+        }
+
+        /**
+         * @RouterMapping(value="/foo")
+         */
+        public function login()
+        {
+            // handle path '/other/foo"
+        }
+    }
+  ```
+
+### 3.4 过滤器
 
 过滤器针对配置的路由进行过滤，支持正则表达式匹配路由，支持正则表达式匹配特定路由地址的排除。
 
@@ -271,11 +332,11 @@ Service 用来实现业务逻辑。控制数据库事务。Service 为遵循 PSR
 
 **过滤器是按照定义顺序执行的，因此定义多个过滤器时要注意顺序。**
 
-### 3.4 Bean 工厂
+### 3.5 Bean 工厂
 
 框架中提供 Bean 工厂能力，在 `config.bean.php` 中配置 bean 信息，由 bean 工厂负责实例化对象。
 
-#### 3.4.1 bean 配置  
+#### 3.5.1 bean 配置  
 
   bean 工厂支持的配置:
 
@@ -299,7 +360,7 @@ Service 用来实现业务逻辑。控制数据库事务。Service 为遵循 PSR
 
 >配置文件中配置的 bean 默认是单例的
 
-#### 3.4.2 根据类名创建类
+#### 3.5.2 根据类名创建类
 
   bean 工厂可以直接根据类名创建类实例。
 
@@ -307,7 +368,7 @@ Service 用来实现业务逻辑。控制数据库事务。Service 为遵循 PSR
 
 bean 工厂详细信息请参考 bean 工厂章节
 
-### 3.5 分页
+### 3.6 分页
 
 Hymie 框架基于适配器模式提供了通用的分页能力，分页主类为 `\hymie\pager\Pager` 通过该类的工厂方法 `public static function getPager($adapterObjOrClassName, ...$params)` 创建实例。
 
@@ -319,7 +380,7 @@ Hymie 框架基于适配器模式提供了通用的分页能力，分页主类�
 
 具体请参考分页章节。
 
-### 3.6 缓存
+### 3.7 缓存
 
 框架的缓存部分支持 PSR-6 PSR-16 标准缓存库，会将所有 PSR-6 缓存适配为 PSR-16 缓存接口，框架实现了 
 
@@ -329,7 +390,7 @@ Hymie 框架基于适配器模式提供了通用的分页能力，分页主类�
 
 3. `Psr6Adapter` 适配 PSR-6 缓存实现到 PSR-16 接口规范
 
-### 3.7 日志
+### 3.8 日志
 1. 系统日志不能在 `config.bean.php` 中配置, 因为 `BeanFactory` 中使用了日志, 会发生递归调用.
 
 2. 日志使用 `monolog`, 在 `config.php` 中进行配置. 若未配置则默认使用 `\Psr\Log\NullLogger`, 因此所有输出日志的代码不会出错.
@@ -338,7 +399,7 @@ Hymie 框架基于适配器模式提供了通用的分页能力，分页主类�
 
 4. 可以在 `config.bean.php` 中配置应用要使用的日志 bean. 
 
-### 3.8 RedisSession
+### 3.9 RedisSession
 框架实现了 RedisSession, 可以在 `config.php` 中配置 `$config['session']['redis'] = true;` 来开启.
 
 实现类为 `\hymie\session\RedisSession` 使用 [predis](https://packagist.org/packages/predis/predis) 与 redis 交互。默认会在 `config.bean.php` 中查找名为 `predis` 的 bean 配置，如未找到则抛出 `\hymie\session\SessionException`.

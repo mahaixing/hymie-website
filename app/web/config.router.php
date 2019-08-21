@@ -1,4 +1,5 @@
 <?PHP
+
 /**
  * 模块路由配置，使用正则配置，参考如下元字符
  * \d       任意十进制数字
@@ -32,5 +33,5 @@
  */
 return array(
     // IndexController->someMethod
-    '/(\w*)' => 'web\controller\IndexController',
+    // '/(\w*)' => 'web\controller\IndexController',
 );
