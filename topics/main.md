@@ -1,5 +1,3 @@
-完整的手册请参考 [Hymie PHPMVC framework 手册](http://hymie.iautoo.cn/)
-
 Hymie PHPMVC 是一个轻量级 MVC 框架，实现中借鉴了 [webpy](http://webpy.org/) 的一些设计思路。Hymie 的目标是实现基本的 MVC 模式，规范化的开发目录结构约定，并且易于整合和使用第三方库、框架。Hymie 框架代码文件大小约为 270KB。
 
 框架遵循以下 PSR 标准:
@@ -52,6 +50,7 @@ Hymie PHPMVC 是一个轻量级 MVC 框架，实现中借鉴了 [webpy](http://w
 	"require": {
 		"php": "^7.1",
 		"catfan/medoo": "^1.7",
+    "doctrine/annotations": "^1.7",
 		"mobiledetect/mobiledetectlib": "^2.8",
 		"monolog/monolog": "^1.24",
 		"predis/predis": "^1.1",
