@@ -1,4 +1,4 @@
-<?PHP
+<?php
 
 namespace web\controller;
 
@@ -20,9 +20,9 @@ class IndexController
             R('/');
         } else {
             if ($request->isMobile()) {
-                return result()->setView("index_mobile")->success($service->getTopic($topic));
+                return result()->setView('index_mobile')->success($service->getTopic($topic));
             } else {
-                return result()->setView("index")->success($service->getTopic($topic));
+                return result()->setView('index')->success($service->getTopic($topic));
             }
         }
     }
