@@ -1,3 +1,13 @@
+# 变更历史
+
+| 版本号 | 说明 |
+| ----- | --- |
+| v1.0  | 实现MVC 框架、BeanFactory、路由、过滤器等功能 |
+| v1.1  | 实现通过注解方式配置路由 |
+| v1.2  | 1. 修改缓存工厂实现 </br> 2. 增加 APCu 缓存 </br> 3. 修改 BeanFactory、Router、Filter 默认缓存为 APCu 缓存 </br> 4. 调整 Router 处理方式 </br> 5. 调整清理缓存方法|
+
+
+# 框架介绍
 Hymie PHPMVC 是一个轻量级 MVC 框架，实现中借鉴了 [webpy](http://webpy.org/) 的一些设计思路。Hymie 的目标是实现基本的 MVC 模式，规范化的开发目录结构约定，并且易于整合和使用第三方库、框架。Hymie 框架代码文件大小约为 270KB。
 
 框架遵循以下 PSR 标准:
@@ -10,13 +20,6 @@ Hymie PHPMVC 是一个轻量级 MVC 框架，实现中借鉴了 [webpy](http://w
 > 这个帮助文档站点就是使用海米 PHPMVC 框架开发的，代码地址 <a href="https://github.com/mahaixing/hymie-website" target="_blank">Github</a> 或者 <a href="https://gitee.com/mahaixing/hymie-website" target="_blank">Gitee</a>
 
 > 如果有改进建议或 BUG 反馈，请联系 <a href="mailto://mahaixing@gmail.com">mahaixing@gmail.com</a>
-
-## 变更历史
-
-| 版本号 | 说明 |
-| ----- | --- |
-| v1.0  | 实现MVC 框架、BeanFactory、路由、过滤器等功能 |
-| v1.1  | 实现通过注解方式配置路由 |
 
 ## 约定
 
@@ -388,11 +391,30 @@ Hymie 框架基于适配器模式提供了通用的分页能力，分页主类�
 
 框架的缓存部分支持 PSR-6 PSR-16 标准缓存库，会将所有 PSR-6 缓存适配为 PSR-16 缓存接口，框架实现了 
 
-1. `ArrayCache` BeanFactory 会使用
+1. `ArrayCache` 基于数组的缓存，在单次请求中有效
 
-2. `NullCache` 当环境为 debug 模式时默认使用，避免缓存影响开发
+2. `ApcuCache` 基于 APCu 的缓存，单台服务器实例有效。
 
 3. `Psr6Adapter` 适配 PSR-6 缓存实现到 PSR-16 接口规范
+
+#### 3.7.1 `Cache` 工厂
+
+框架通过 `Cache` 工厂来为应用和框架本身生产缓存实例，工厂方法原型为：
+
+  ```
+   public static function getInstance(
+      $beanNameOrClassName = self::DEFAULT_BAEN_NAME,
+      $replaceBeanNameOrClassName = null
+  )
+  ```
+
+其中：
+
+1. `$beanNameOrClassName`: 要初始化的缓存 `bean` 名或者类名。
+
+2. `$replaceBeanNameOrClassName`: 如果要初始化的缓存 `bean` 或类无法加载，则替换的缓存实现，默认是 `ArrayCache` 
+
+如果替换缓存实现也无法加载，则最终会返回 `ArrayCache` 实例，以保证使用缓存的代码无需做过多可用性判断，以及可测试性。
 
 ### 3.8 日志
 1. 系统日志不能在 `config.bean.php` 中配置, 因为 `BeanFactory` 中使用了日志, 会发生递归调用.

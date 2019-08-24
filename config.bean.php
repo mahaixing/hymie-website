@@ -1,4 +1,4 @@
-<?PHP
+<?php
 /**
  * bean工厂配置文件，根据 bean 配置数组来构造对象，需要遵循 PSR-4 标准的
  * 自动加载机制。
@@ -93,10 +93,10 @@
  *  ];
  *
  * @license http://www.apache.org/licenses/LICENSE-2.0
+ *
  * @param {type}
  * @return:
  */
-
 $beans = array();
 
 // predis bean
@@ -120,7 +120,7 @@ $beans['cache'] = [
 $beans['twig_loader'] = [
     'class' => '\Twig\Loader\FilesystemLoader',
     'construct-args' => [
-        APP_ROOT . DIRECTORY_SEPARATOR,
+        APP_ROOT.DIRECTORY_SEPARATOR,
     ],
 ];
 
@@ -129,8 +129,8 @@ $beans['twig'] = [
     'construct-args' => [
         'ref:twig_loader',
         [
-            'cache' => ROOT . DIRECTORY_SEPARATOR . 'runtime' . DIRECTORY_SEPARATOR . 'twig',
-            'debug' => DEBUG,
+            'cache' => ROOT.DIRECTORY_SEPARATOR.'runtime'.DIRECTORY_SEPARATOR.'twig',
+            'debug' => get_config('debug', true),
         ],
     ],
 ];

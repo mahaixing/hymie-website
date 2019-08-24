@@ -1,24 +1,11 @@
-<?PHP
+<?php
 
 /**
- * 定义环境配置，可接受的环境配置有：
- *
- *      true         开发环境
- *      false        正式环境
- */
-define('DEBUG', true);
-
-/**
- * 是否允许日志记录
- */
-define('LOG_ENABLE', true);
-
-/**
- * 网站地址，必须以 http(s):// 开头，末尾不需 /
+ * 网站地址，必须以 http(s):// 开头，末尾不需 /.
  */
 define('HTTP_HOST', 'http://hymie.iautoo.cn');
 
-/**
+/*
  * 定义常量，所有页面都需要检查这个常量，如果没有则代表直接访问该php
  * 需要在所有php文件中增加以下内容：
  *
@@ -27,35 +14,48 @@ define('HTTP_HOST', 'http://hymie.iautoo.cn');
  */
 define('ROOT', __DIR__);
 
-/**
+/*
  * 应用主目录
  */
-define("APP_ROOT", ROOT . DIRECTORY_SEPARATOR . "app");
+define('APP_ROOT', ROOT.DIRECTORY_SEPARATOR.'app');
 
-/**
+/*
  * 默认字符集
  */
-define("CHARSET", 'UTF-8');
+define('CHARSET', 'UTF-8');
 
-/**
+/*
  * 默认时区
  */
-define("TIMEZONE", "Asia/Shanghai");
+define('TIMEZONE', 'Asia/Shanghai');
 
 /**
- * 需要引入 composer 的 autoload
+ * 需要引入 composer 的 autoload.
  */
-include ROOT . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php';
+include ROOT.DIRECTORY_SEPARATOR.'vendor'.DIRECTORY_SEPARATOR.'autoload.php';
 
 $config = array();
 
-/**
+/*
+ * 定义环境配置，可接受的环境配置有：.
+ *
+ *      true         开发环境
+ *      false        正式环境
+ */
+$config['debug'] = false;
+
+/*
+ * 是否允许日志记录
+ */
+$config['log_enable'] = true;
+
+/*
  * 控制器配置
  */
 // 方法参数是否进行 xss 过滤
 $config['controller']['xss'] = true;
 
-/**
+/*
  * monolog 配置
  *      'DEBUG'
  *      'INFO'
@@ -68,12 +68,12 @@ $config['controller']['xss'] = true;
  */
 // *** 建议修改这个路径，到web主目录外。***
 $config['logger']['name'] = 'HYMIE';
-$config['logger']['path'] = ROOT . DIRECTORY_SEPARATOR . 'runtime' . DIRECTORY_SEPARATOR . 'logs' . DIRECTORY_SEPARATOR . 'application.log';
+$config['logger']['path'] = ROOT.DIRECTORY_SEPARATOR.'runtime'.DIRECTORY_SEPARATOR.'logs'.DIRECTORY_SEPARATOR.'application.log';
 $config['logger']['level'] = 'INFO';
 $config['logger']['max_files'] = 30;
 //$config['logger']['format'] = ["[%datetime%] %channel%.%level_name% : %message% - %context% \n","Y-m-d H:i:s"];
 
-/**
+/*
  * enable_query_string:
  *  true 使用查询字符串模式
  *  false 使用 path_info 模式
@@ -91,14 +91,14 @@ $config['url']['query_string_key'] = 'g';
 // 仅在 enable_query_string = false 时可用
 $config['url']['rewrite_enabled'] = true;
 
-/**
+/*
  * 分页配置
  * 目前只支持 PdoPage
  */
 $config['pagination']['page_key'] = 'p';
 $config['pagination']['size_key'] = 's';
 
-/**
+/*
  * 视图类型，支持:
  *  1. php
  *  2. twig
@@ -115,7 +115,7 @@ $config['pagination']['size_key'] = 's';
  */
 $config['view']['default'] = 'twig';
 
-/**
+/*
  * redis session 配置
  *
  * 使用 '\hymie\session\RedisSession' 为注册的 session handler ;
@@ -135,7 +135,7 @@ $config['session']['db'] = null;
 //如果前端有负载均衡，则此配置无意义
 $config['session']['match_ip'] = false;
 
-/**
+/*
  * cookie 配置
  */
 $config['cookie']['prefix'] = '';
@@ -144,7 +144,7 @@ $config['cookie']['path'] = '/';
 $config['cookie']['secure'] = false;
 $config['cookie']['httponly'] = false;
 
-/**
+/*
  * upload 配置
  * type = file | qiniu
  */
@@ -152,7 +152,7 @@ $config['upload']['type'] = 'file';
 
 // file 类型上传配置
 //不要以 / 或者 \ 结尾。
-$config['upload']['file']['upload_path'] = dirname($_SERVER['SCRIPT_FILENAME']) . '/upload';
+$config['upload']['file']['upload_path'] = dirname($_SERVER['SCRIPT_FILENAME']).'/upload';
 //file upload config
 // 如果为数字则单位为 Bbyte，如为字符串则支持 'K' 'M' 'G' 'K' 单位
 $config['upload']['file']['max_file_size'] = '2M';

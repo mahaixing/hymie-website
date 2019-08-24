@@ -37,19 +37,6 @@ Hymie phpmvc 框架有多个配置文件，配置文件分类 _模块配置文�
 ```
 <?PHP
 /**
- * 定义环境配置，可接受的环境配置有：
- *
- *      true         开发环境
- *      false        正式环境
- */
-define('DEBUG', true);
-
-/**
- * 是否允许日志记录
- */
-define('LOG_ENABLE', true);
-
-/**
  * 网站地址，必须以 http(s):// 开头，末尾不需 /
  */
 // define('HTTP_HOST', '');
@@ -84,6 +71,19 @@ define("TIMEZONE", "Asia/Shanghai");
 include ROOT . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php';
 
 $config = array();
+
+/*
+ * 定义环境配置，可接受的环境配置有：.
+ *
+ *      true         开发环境
+ *      false        正式环境
+ */
+$config['debug'] = true;
+
+/*
+ * 是否允许日志记录
+ */
+$config['log_enable'] = true;
 
 /**
  * 控制器配置
