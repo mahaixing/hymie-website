@@ -110,7 +110,7 @@ Hymie PHPMVC 是一个轻量级 MVC 框架，实现中借鉴了 [webpy](http://w
 
 1. 拷贝配置文件
 
-  `./vendor/bin/hymie copyconfig .`
+  `./vendor/bin/hymie copy .`
 
 2. 新建模块 `web`
 
