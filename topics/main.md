@@ -57,19 +57,19 @@ Hymie PHPMVC 是一个轻量级 MVC 框架，实现中借鉴了 [webpy](http://w
 如果使用 1.2 源码安装则需配置 `composer.json` 以获取依赖包，以下为依赖配置部分
 
 ```
-	"require": {
-		"php": "^7.1",
-		"catfan/medoo": "^1.7",
-    "doctrine/annotations": "^1.7",
-		"mobiledetect/mobiledetectlib": "^2.8",
-		"monolog/monolog": "^1.24",
-		"predis/predis": "^1.1",
-		"symfony/cache": "^3.4",
-		"twig/twig": "^2.11",
-		"voku/anti-xss": "^4.1",
-		"webmozart/assert": "^1.4",
-		"filp/whoops": "^2.4"
-	}
+    "require": {
+      "php": "^7.1",
+      "catfan/medoo": "^1.7",
+      "doctrine/annotations": "^1.7",
+      "mobiledetect/mobiledetectlib": "^2.8",
+      "monolog/monolog": "^1.24",
+      "predis/predis": "^1.1",
+      "symfony/cache": "^3.4",
+      "twig/twig": "^2.11",
+      "voku/anti-xss": "^4.1",
+      "webmozart/assert": "^1.4",
+      "filp/whoops": "^2.4"
+    }
 ```
 将以上部分放到 `composer.json` 文件后，执行 `composer intall` 命令完成依赖安装。
 
@@ -402,10 +402,12 @@ Hymie 框架基于适配器模式提供了通用的分页能力，分页主类�
 框架通过 `Cache` 工厂来为应用和框架本身生产缓存实例，工厂方法原型为：
 
   ```
-   public static function getInstance(
-      $beanNameOrClassName = self::DEFAULT_BAEN_NAME,
-      $replaceBeanNameOrClassName = null
-  )
+    public static function getInstance(
+        $beanNameOrClassName = self::DEFAULT_BAEN_NAME,
+        $replaceBeanNameOrClassName = null,
+        $useBeanFactory = false,
+        $cleanable = false
+    ) 
   ```
 
 其中：
@@ -415,6 +417,18 @@ Hymie 框架基于适配器模式提供了通用的分页能力，分页主类�
 2. `$replaceBeanNameOrClassName`: 如果要初始化的缓存 `bean` 或类无法加载，则替换的缓存实现，默认是 `ArrayCache` 
 
 如果替换缓存实现也无法加载，则最终会返回 `ArrayCache` 实例，以保证使用缓存的代码无需做过多可用性判断，以及可测试性。
+
+3. `$useBeanFactory`: 是否使用 BeanFactory，默认是 true，否则会直接 new 类
+
+4. `$cleanable`: 是否可清理，默认是否，如果为 true 的话会用 `\hymie\cache\impl\CleanableCache` 包装生成的 bean
+
+Application 启动时会调用 Cache::registerCleaner 函数，在脚本结束时检查 ROOT . DIRECTORY_SEPARATOR .clean_cache 文件，如存在则会清理 CleanableCache 实例。
+
+> 注意：由于 PSR-6 PSR-16 标准没有遍历所有 key 的方法，因此清理实际上会清除整个缓存，目前框架的 `BeanFactory` `Router` `Filter` 是可清理的缓存。
+
+> `BeanFactory` 默认使用 `ApcuCache` 如不可用则会使用 `ArrayCache`，
+> `Router` `Filter` 默认使用 `ApcuCache` 如不可用则会使用 `config.bean.php` 中配置的缓存实现，默认是系统缓存。
+> **建议启用 php 的 `apcu` 来获取更好的性能**
 
 ### 3.8 日志
 1. 系统日志不能在 `config.bean.php` 中配置, 因为 `BeanFactory` 中使用了日志, 会发生递归调用.

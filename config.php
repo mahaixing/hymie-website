@@ -56,6 +56,22 @@ $config['log_enable'] = true;
 $config['controller']['xss'] = true;
 
 /*
+ * 路由、过滤器缓存是可清理缓存，系统更新或者修改后可能会新增路由配置、控制器、过滤器，因此需要上线后清理已缓存配置。
+ *
+ * 默认会使用 \hymie\cache\impl\ApcuCache，但如果 apcu 未启用则会使用下方配置的默认替换缓存。
+ *
+ * 路由和过滤器的替换缓存，默认与系统缓存一致，但这两个缓存是可清理的。
+ *
+ * PSR-6 PSR-16 规范无法遍历缓存 key，所以清理实际上是清理整个缓存，也就是业务数据的缓存也会被清理，
+ * 因此，如不希望业务数据缓存被清理，则需要为他们配置单独的缓存，比如：
+ *
+ * 系统缓存: redis
+ * Filter、Cache 缓存： \Symfony\Component\Cache\Adapter\FilesystemAdapter （Apcu 未启用的情况下）
+ */
+$config['cache']['filter'] = \hymie\cache\Cache::DEFAULT_BAEN_NAME;
+$config['cache']['router'] = \hymie\cache\Cache::DEFAULT_BAEN_NAME;
+
+/*
  * monolog 配置
  *      'DEBUG'
  *      'INFO'

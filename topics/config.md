@@ -35,13 +35,13 @@ Hymie phpmvc 框架有多个配置文件，配置文件分类 _模块配置文�
 以下为 `config.php` 的模板文件
 
 ```
-<?PHP
-/**
+<?php
+/*
  * 网站地址，必须以 http(s):// 开头，末尾不需 /
  */
 // define('HTTP_HOST', '');
 
-/**
+/*
  * 定义常量，所有页面都需要检查这个常量，如果没有则代表直接访问该php
  * 需要在所有php文件中增加以下内容：
  *
@@ -50,25 +50,25 @@ Hymie phpmvc 框架有多个配置文件，配置文件分类 _模块配置文�
  */
 define('ROOT', __DIR__);
 
-/**
+/*
  * 应用主目录
  */
-define("APP_ROOT", ROOT . DIRECTORY_SEPARATOR . "app");
+define('APP_ROOT', ROOT.DIRECTORY_SEPARATOR.'app');
 
-/**
+/*
  * 默认字符集
  */
-define("CHARSET", 'UTF-8');
+define('CHARSET', 'UTF-8');
 
-/**
+/*
  * 默认时区
  */
-define("TIMEZONE", "Asia/Shanghai");
+define('TIMEZONE', 'Asia/Shanghai');
 
 /**
- * 需要引入 composer 的 autoload
+ * 需要引入 composer 的 autoload.
  */
-include ROOT . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php';
+include ROOT.DIRECTORY_SEPARATOR.'vendor'.DIRECTORY_SEPARATOR.'autoload.php';
 
 $config = array();
 
@@ -85,13 +85,13 @@ $config['debug'] = true;
  */
 $config['log_enable'] = true;
 
-/**
+/*
  * 控制器配置
  */
 // 方法参数是否进行 xss 过滤
 $config['controller']['xss'] = true;
 
-/**
+/*
  * monolog 配置
  *      'DEBUG'
  *      'INFO'
@@ -104,12 +104,28 @@ $config['controller']['xss'] = true;
  */
 // *** 建议修改这个路径，到web主目录外。***
 $config['logger']['name'] = 'HYMIE';
-$config['logger']['path'] = ROOT . DIRECTORY_SEPARATOR  . 'logs' . DIRECTORY_SEPARATOR . 'application.log';
+$config['logger']['path'] = ROOT.DIRECTORY_SEPARATOR.'logs'.DIRECTORY_SEPARATOR.'application.log';
 $config['logger']['level'] = 'DEBUG';
 $config['logger']['max_files'] = 30;
 //$config['logger']['format'] = ["[%datetime%] %channel%.%level_name% : %message% - %context% \n","Y-m-d H:i:s"];
 
-/**
+/*
+ * 路由、过滤器缓存是可清理缓存，系统更新或者修改后可能会新增路由配置、控制器、过滤器，因此需要上线后清理已缓存配置。
+ *
+ * 默认会使用 \hymie\cache\impl\ApcuCache，但如果 apcu 未启用则会使用下方配置的默认替换缓存。
+ *
+ * 路由和过滤器的替换缓存，默认与系统缓存一致，但这两个缓存是可清理的。
+ *
+ * PSR-6 PSR-16 规范无法遍历缓存 key，所以清理实际上是清理整个缓存，也就是业务数据的缓存也会被清理，
+ * 因此，如不希望业务数据缓存被清理，则需要为他们配置单独的缓存，比如：
+ *
+ * 系统缓存: redis
+ * Filter、Cache 缓存： \Symfony\Component\Cache\Adapter\FilesystemAdapter （Apcu 未启用的情况下）
+ */
+$config['cache']['filter'] = \hymie\cache\Cache::DEFAULT_BAEN_NAME;
+$config['cache']['router'] = \hymie\cache\Cache::DEFAULT_BAEN_NAME;
+
+/*
  * enable_query_string:
  *  true 使用查询字符串模式
  *  false 使用 path_info 模式
@@ -127,14 +143,14 @@ $config['url']['query_string_key'] = 'g';
 // 仅在 enable_query_string = false 时可用
 $config['url']['rewrite_enabled'] = false;
 
-/**
+/*
  * 分页配置
  * 目前只支持 PdoPage
  */
 $config['pagination']['page_key'] = 'p';
 $config['pagination']['size_key'] = 's';
 
-/**
+/*
  * 视图类型，支持:
  *  1. php
  *  2. twig
@@ -149,26 +165,26 @@ $config['pagination']['size_key'] = 's';
  *
  * 视图可以在运行时选择，比如返回的视图为："twig:admin/foo/bar.html" 则表示使用twig引擎处理视图。
  *  同样返回 "json:" 代表使用json视图
- * 
+ *
  * 视图有唯一的要求，必须是 [view_root]/[module]/view 的目录结构
- * 
+ *
  *  所有视图文件的默认位置是 [web_root]/app/
  *  php 视图文件位置可以在下方的 $config['view']['php_view_root'] 配置项中配置
  *  twig 视图文件位置可以修改 config.bean.php 中配置 twig bean 的构造函数参数。
- * 
+ *
  */
 $config['view']['default'] = 'php';
 // $config['view']['php_view_root'] = APP_ROOT;
 
-/**
+/*
  * 注册应用实现的视图类，可以有多个，需要继承 \hymie\view\View
  * $config['view']['implements] = [
- *  ['view_name', 'namespace\class_name']   
+ *  ['view_name', 'namespace\class_name']
  * ]
  */
 $config['view']['implements'] = [];
 
-/**
+/*
  * redis session 配置
  *
  * 使用 '\hymie\session\RedisSession' 为注册的 session handler ;
@@ -188,7 +204,7 @@ $config['session']['db'] = null;
 //如果前端有负载均衡，则此配置无意义
 $config['session']['match_ip'] = false;
 
-/**
+/*
  * cookie 配置
  */
 $config['cookie']['prefix'] = '';
@@ -197,7 +213,7 @@ $config['cookie']['path'] = '/';
 $config['cookie']['secure'] = false;
 $config['cookie']['httponly'] = false;
 
-/**
+/*
  * upload 配置
  * type = file | qiniu
  */
@@ -205,14 +221,13 @@ $config['upload']['type'] = 'file';
 
 // file 类型上传配置
 //不要以 / 或者 \ 结尾。
-$config['upload']['file']['upload_path'] = dirname($_SERVER['SCRIPT_FILENAME']) . '/upload';
+$config['upload']['file']['upload_path'] = dirname($_SERVER['SCRIPT_FILENAME']).'/upload';
 //file upload config
 // 如果为数字则单位为 Bbyte，如为字符串则支持 'K' 'M' 'G' 'K' 单位
 $config['upload']['file']['max_file_size'] = '2M';
 $config['upload']['file']['max_file_uploads'] = 10;
 // '*' 代表允许所有文件, 如果不设置则默认为允许所有文件
 $config['upload']['file']['allowed_types'] = 'jpeg|jpg|png|zip|doc';
-
 
 $GLOBALS['_config'] = &$config;
 ```
