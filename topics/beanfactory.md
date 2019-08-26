@@ -1,5 +1,7 @@
 Hymie phpmvc 框架的 bean 工厂设计初衷是为了可以通过配置的方式集成三方框架、类库。而不是为了实现与 `springframework` 一样的 `IOC` 容器，不过目前的 bean 工厂实现的确具备某些 `springframework IOC` 容器的特性。
 
+> BeanFactory 需要使用缓存，若 APCu 未启用则使用 ArrayCache，使用 ArrayCache 时 Bean 在单个请求中是单例存在，使用 APCu 缓存是 Bean 始终是单例的。
+
 ## 帮助函数
 
 
@@ -18,7 +20,7 @@ Hymie phpmvc 框架的 bean 工厂设计初衷是为了可以通过配置的方�
 
 > **bean 工厂通过配置的 _"bean 名"_ 创建的实例在单个 http 请求中是单例的，对于不同的 http 请求则不是单例的。**
 
-> **bean 工厂通过 _"类名"_ 创建类实例，默认在单个 http 请求中不是单例的，可以在调用时指定是否需要单例实例，对于不同的 http 请求则不是单例的。**
+> **bean 工厂通过 _"类名"_ 创建类实例，默认在单个 http 请求中不是单例的，可以在调用时指定是否需要单例实例，对于不同的 http 请求则不是单例的（若使用 APCu 缓存的话始终是单例）**
 
 ## 一、bean 配置信息
 ### 1.1 配置文件

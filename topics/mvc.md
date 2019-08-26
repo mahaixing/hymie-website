@@ -36,7 +36,7 @@ return array(
   '/' => ['web\\controller\\IndexController', 'index']
 )
 ```
-控制器默认会由 BeanFactory 加载, 默认情况下控制器在当前 http 请求中是 **单例** 的.
+> 控制器默认会由 BeanFactory 加载, 默认情况下控制器在当前 http 请求中是 **单例** 的，如果使用 APCu 缓存则控制器跨请求也是单例的。
 
 ### 1.2 控制器方法参数
 
